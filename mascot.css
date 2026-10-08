@@ -1,0 +1,21 @@
+/* 78: маскот на главной (с 08.10, вариант Б) — кот партнёра, записанный спрайтом. README, «Маскот (78)».
+   Анимируется только transform: лист спрайта (клипы, шагами) и сам маскот (путь с прокруткой). Без WebGL. */
+.mascot{--S:88px;position:relative;display:block;width:var(--S);height:var(--S);pointer-events:auto;-webkit-tap-highlight-color:transparent}
+/* в слоте у заголовка (без JS, reduced-motion, браузер без ScrollTimeline) — по размеру слота */
+.hero-title-group .hero-avatar .mascot{width:100%;height:100%;--S:80px}
+.mascot-frame{position:absolute;overflow:hidden;pointer-events:none}
+.mascot-sheet{position:absolute;left:0;top:0;display:block;max-width:none;will-change:transform;user-select:none;-webkit-user-drag:none}
+/* путь: слой во всю страницу, обрезает маскота, который выглядывает из-за края окна */
+.has-mascot-route{position:relative}
+.mascot-track{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:4}
+.mascot-track .mascot{position:absolute;left:0;top:0;will-change:transform}
+/* финиш — место над кнопкой «Создать видео в Telegram» (у партнёра там тоже стоял кот); только когда маскот в пути */
+.has-mascot-route .final-actions .final-avatar{display:block;width:88px;height:88px;align-self:center;margin-bottom:10px}
+.mascot-track.is-peek .mascot{pointer-events:none}
+@media(max-width:600px){.hero-title-group .hero-avatar .mascot{--S:60px}}
+@media(max-width:480px){.mascot{--S:56px}.has-mascot-route .final-actions .final-avatar{width:56px;height:56px}}
+/* sprite:start — пишет tools/mascot_sprite.py: 62 кадров 155×160 px, сетка 12×6 */
+.mascot{--cols:12;--rows:6;--clips:"blink:1:4:24 left:5:9:24 right:14:9:24 jump:23:39:24"}
+.mascot-frame{left:calc(var(--S)*-0.0885);top:calc(var(--S)*-0.2250);width:calc(var(--S)*1.1510);height:calc(var(--S)*1.1927)}
+.mascot-sheet{width:1200%;height:600%}
+/* sprite:end */

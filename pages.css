@@ -80,8 +80,15 @@ a.button{text-decoration:none}
 .site-footer-contact span{font-size:.75rem;color:#91918b}
 .site-footer-legal{grid-column:1 / -1;font-size:.75rem;color:#91918b;line-height:1.5}
 .final-cta+.site-footer{border-top:0;margin-top:0}
-/* шуточные галочки (С-6, промпт 75): без JS и без сохранения; «спасибо» — только CSS */
-.joke-consent{grid-column:1 / -1;display:grid;gap:8px;max-width:640px;font-size:.8125rem;color:#b9b9b2;line-height:1.4}
+/* шуточное согласие (С-6, промпт 75, доделка 2): окно <dialog> — consent.js; «спасибо» — только CSS. display — только
+   у открытого окна: иначе закрытый <dialog> был бы виден */
+.joke-consent{width:min(460px,calc(100vw - 32px));overflow:hidden auto;padding:24px;border:1px solid var(--line);border-radius:16px;background:#111;color:#b9b9b2;font-size:.875rem;line-height:1.45}
+.joke-consent[open]{display:grid;gap:12px}
+.joke-consent::backdrop{background:rgba(0,0,0,.6)}
+.joke-title{color:var(--ink);font-size:1.125rem;font-weight:650}
+.joke-agree{justify-self:start;margin-top:4px}
+.site-footer-legal .joke-open{color:#d7d7d0;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.site-footer-legal .joke-open:hover{color:var(--lime)}
 .joke-consent label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
 .joke-consent input{flex:none;width:16px;height:16px;margin:1px 0 0;accent-color:var(--lime);cursor:pointer}
 .joke-note{font-size:.75rem;color:#91918b}

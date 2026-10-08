@@ -1,0 +1,62 @@
+{
+  "version": "2026-10-06",
+  "bot": "Montaggio_bot",
+  "currency": "RUB",
+  "fx": {
+    "usd_rub": 90.18,
+    "date": "2026-10-06",
+    "fx_fee": 0.01
+  },
+  "formula": {
+    "estimate_error": 0.004,
+    "pay_fees": 0.10,
+    "markup": 0.20,
+    "markups": {},
+    "min_prices": {}
+  },
+  "montage": {
+    "min_sec": 3,
+    "max_sec": 180,
+    "max_clips": 10,
+    "standard": [1, 2, 3, 14],
+    "estimate": {
+      "base_usd": 0.025,
+      "per_min_usd": 0.002,
+      "motion_usd": 0.025,
+      "shorten_usd": 0.005,
+      "broll_usd": 0.01,
+      "drawing_usd": 0.018,
+      "sec_per_drawing": 15,
+      "max_drawings": 6,
+      "layer": [15, 16, 18, 20, 23],
+      "shorten": 4,
+      "draw": 16,
+      "broll": 22
+    }
+  },
+  "neuro": {
+    "min_sec": 4,
+    "max_sec": 30,
+    "min_billable_sec": 4,
+    "usd_per_1k_tokens": 0.01284,
+    "usd_per_1k_tokens_1080": 0.01404,
+    "genjutsu_usd_per_sec": {"480p": 0.318, "720p": 0.681, "1080p": 1.632},
+    "dims": {"480p": [480, 854], "720p": [720, 1280], "1080p": [1080, 1920]}
+  },
+  "aivideo": {
+    "min_sec": 4,
+    "max_sec": 30,
+    "default_sec": 10,
+    "fps": 24,
+    "usd_per_m_tokens": 10.70,
+    "usd_per_m_tokens_1080": 11.70,
+    "text_frame_usd": 0.045,
+    "dims": {
+      "480p": {"9:16": [480, 854], "16:9": [854, 480], "1:1": [640, 640], "4:3": [752, 560], "3:4": [560, 752], "21:9": [992, 432]},
+      "720p": {"9:16": [720, 1280], "16:9": [1280, 720], "1:1": [960, 960], "4:3": [1112, 834], "3:4": [834, 1112], "21:9": [1470, 630]},
+      "1080p": {"9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1440, 1440], "4:3": [1664, 1248], "3:4": [1248, 1664], "21:9": [2206, 946]}
+    }
+  },
+  "preset": {"usd": 0.39},
+  "sites": {"usd": 2.2, "enabled": false}
+}

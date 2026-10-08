@@ -1,10 +1,10 @@
 {
-  "version": "2026-10-06",
+  "version": "2026-10-08",
   "bot": "Montaggio_bot",
   "currency": "RUB",
   "fx": {
-    "usd_rub": 90.18,
-    "date": "2026-10-06",
+    "usd_rub": 89.56,
+    "date": "2026-10-08",
     "fx_fee": 0.01
   },
   "formula": {

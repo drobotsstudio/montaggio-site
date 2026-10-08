@@ -39,7 +39,7 @@
   const keyOf = (map, code) => Object.keys(map).find(k => map[k][0] === code);
   let P = null;
 
-  // --- цены: тот же расчёт, что pricing.py бота (промпт 65: себестоимость + наценка услуги) ---
+  // --- цены: тот же расчёт, что в боте (reelsbot/pricing.py) ---
   // service — как в боте: montage, neuro, aivideo, preset, brag
   function priceOf(usd, service) {
     const f = P.formula, fx = P.fx;
@@ -73,7 +73,7 @@
     const usd = aivTokens(ratio, quality, seconds) / 1e6 * rate + (textFrame ? a.text_frame_usd : 0);
     return priceOf(usd, 'aivideo');
   }
-  // pricing.montage_usd: оценка себестоимости по длине и пунктам
+  // pricing.montage_usd: оценка по длине и пунктам
   function montagePrice(seconds, opts) {
     const e = P.montage.estimate, on = new Set(opts);
     let usd = e.base_usd + e.per_min_usd * seconds / 60;

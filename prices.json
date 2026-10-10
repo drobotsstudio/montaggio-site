@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-08",
+  "version": "2026-10-10",
   "bot": "Montaggio_bot",
   "currency": "RUB",
   "fx": {
@@ -12,7 +12,7 @@
     "pay_fees": 0.10,
     "markup": 0.20,
     "markups": {},
-    "min_prices": {}
+    "min_prices": {"montage": 50}
   },
   "montage": {
     "min_sec": 3,

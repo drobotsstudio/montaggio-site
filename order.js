@@ -412,7 +412,7 @@
   }
 
   // ошибка загрузки цен — отдельно от ошибок init: баг в коде не должен выдаваться за «цены не загрузились»
-  fetch('prices.json?v=4', {credentials: 'same-origin'})
+  fetch('prices.json?v=5', {credentials: 'same-origin'})
     .then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
     .then(init, () => {
       const box = document.createElement('div');

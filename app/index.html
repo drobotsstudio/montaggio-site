@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <!-- промпт 83: единственный внешний ресурс — официальный скрипт Telegram; данные клиента никуда не уходят -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self'; frame-src tg: tgb:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#090909" />
+    <meta name="color-scheme" content="dark" />
+    <title>Montaggio — приложение</title>
+    <!-- async: медленный или недоступный telegram.org не держит страницу — app.js подключит его, когда загрузится -->
+    <script async src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="icon" href="../favicon-32.png" sizes="32x32" />
+    <link rel="stylesheet" href="../assets/fonts.css" />
+    <link rel="stylesheet" href="style.css?v=1" />
+  </head>
+  <body>
+    <noscript
+      ><p class="bottom-note">
+        Для приложения нужен JavaScript. Заказать можно и в боте:
+        <a href="https://t.me/Montaggio_bot">@Montaggio_bot</a>.
+      </p></noscript
+    >
+    <header class="topbar">
+      <button id="header-back" class="header-back" data-action="back" aria-label="Назад" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7" /></svg><span>Назад</span></button
+      ><a href="#/home" class="brand" aria-label="Montaggio — главная"><span class="brand-mark"></span>Montaggio</a>
+    </header>
+    <main id="app" tabindex="-1"></main>
+    <nav id="nav" class="bottom-nav" aria-label="Основная навигация"></nav>
+    <div id="overlay"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="app.js?v=1" defer></script>
+  </body>
+</html>

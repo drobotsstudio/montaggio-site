@@ -9,7 +9,7 @@
   },
   "formula": {
     "estimate_error": 0.004,
-    "pay_fees": 0.10,
+    "pay_fees": 0.11,
     "markup": 0.20,
     "markups": {},
     "min_prices": {"montage": 50}

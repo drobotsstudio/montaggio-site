@@ -38,6 +38,7 @@
   const setRadio = (name, v) => { const el = form.querySelector(`[name="${name}"][value="${v}"]`); if (el) el.checked = true; };
   const keyOf = (map, code) => Object.keys(map).find(k => map[k][0] === code);
   let P = null;
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
   // --- цены: тот же расчёт, что в боте (reelsbot/pricing.py) ---
   // service — как в боте: montage, neuro, aivideo, preset, brag
@@ -100,7 +101,7 @@
       .filter(([, items]) => items.length);
     if (experimental.length) {
       const title = document.createElement('p');
-      title.className = 'opt-group';
+      title.className = 'opt-group opt-exp';
       title.textContent = '🧪 Экспериментальные — включите сами';
       const warning = document.createElement('p');
       warning.className = 'step-note';
@@ -141,8 +142,60 @@
         li.append(label);
         list.append(li);
       }
-      box.append(title, list);
+      // 79: на телефоне группа свёрнута под кнопкой (mobile.js), стандартный монтаж — плашкой с выбранными пунктами,
+      // список — под «Изменить пункты»; на компьютере плашки нет (mobile.css), список как был
+      if (group === groups[0][0]) {
+        list.dataset.mFold = 'Изменить пункты';
+        box.append(title, stdPlate(), list);
+      } else {
+        list.dataset.mFold = group;
+        box.append(title, list);
+      }
     }
+  }
+  // 79: плашка «Стандартный монтаж» для телефона — короткие названия пунктов (полные — в списке под «Изменить пункты»)
+  const STD_SHORT = {1: 'Паузы', 2: 'Слова-паразиты', 3: 'Дубли и оговорки', 14: 'Чистый голос'};
+  function stdPlate() {
+    const plate = document.createElement('div');
+    plate.className = 'std-plate m-only';
+    const head = document.createElement('p');
+    head.className = 'std-plate-head';
+    const badge = document.createElement('span');
+    badge.id = 'std-badge';
+    badge.textContent = 'включён';
+    head.append('✅ Стандартный монтаж', badge);
+    const note = document.createElement('p');
+    note.textContent = 'Включён сразу, любой пункт можно снять.';
+    const chips = document.createElement('div');
+    chips.className = 'std-chips';
+    chips.id = 'std-chips';
+    plate.append(head, note, chips);
+    return plate;
+  }
+  const plural = (n, one, few, many) => n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many;
+  // на телефоне: выбранные пункты стандарта — на плашке, у свёрнутых групп — сколько выбрано
+  function renderPhone(s) {
+    const chips = $('std-chips');
+    if (chips) {
+      const on = s.service === 'montage' ? P.montage.standard.filter(n => s.opts.includes(n)) : [];
+      chips.replaceChildren(...on.map(n => {
+        const chip = document.createElement('span');
+        const full = MONTAGE_OPTIONS.flatMap(([, items]) => items).find(([k]) => k === n);
+        chip.textContent = `${n} · ${STD_SHORT[n] || (full ? full[1] : '')}`;
+        return chip;
+      }));
+      $('std-badge').hidden = !on.length;
+    }
+    for (const list of $('m-options').querySelectorAll('.opt-list')) {
+      const btn = list.previousElementSibling;
+      if (!btn || !btn.classList.contains('m-fold-btn') || list.dataset.mFold === 'Изменить пункты') continue;
+      let cnt = btn.querySelector('.m-cnt');
+      if (!cnt) { cnt = document.createElement('span'); cnt.className = 'm-cnt'; btn.append(cnt); }
+      const all = list.querySelectorAll('input').length, on = list.querySelectorAll('input:checked').length;
+      cnt.textContent = on ? `выбрано ${on} из ${all}` : `${all} ${plural(all, 'пункт', 'пункта', 'пунктов')}`;
+    }
+    const picked = form.querySelector('[name="service"]:checked');
+    if ($('svc-desc') && picked) $('svc-desc').textContent = picked.closest('label').querySelector('small')?.textContent || '';
   }
   const selectedOptions = () => [...form.querySelectorAll('[name="m-opt"]:checked')].map(el => Number(el.value)).sort((a, b) => a - b);
   const maskOf = list => list.reduce((m, n) => m + 2 ** (n - 1), 0);
@@ -150,7 +203,6 @@
     const want = new Set(list);
     form.querySelectorAll('[name="m-opt"]').forEach(el => { el.checked = want.has(Number(el.value)); });
   }
-  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   function clips() {
     const el = $('m-clips');
     const n = clamp(Math.round(Number(el.value) || 1), 1, P.montage.max_clips);
@@ -311,6 +363,14 @@
       go.href = `https://t.me/${BOT}?start=${code}`;
     }
     $('sum-code').textContent = empty ? '—' : code;
+    // 79: нижняя панель телефона — тот же итог и та же ссылка в бота
+    const barGo = $('bar-go');
+    if (barGo) {
+      $('bar-price').textContent = $('sum-price').textContent;
+      if (empty) { barGo.setAttribute('role', 'link'); barGo.setAttribute('aria-disabled', 'true'); barGo.setAttribute('tabindex', '-1'); barGo.removeAttribute('href'); }
+      else { barGo.removeAttribute('role'); barGo.removeAttribute('aria-disabled'); barGo.removeAttribute('tabindex'); barGo.href = go.href; }
+    }
+    renderPhone(s);
     // #код в адресе — чтобы ссылкой на выбор можно было поделиться; реже, чем события ползунка (браузеры
     // ограничивают частые replaceState)
     clearTimeout(hashTimer);
@@ -338,7 +398,16 @@
     form.addEventListener('submit', event => event.preventDefault());
     $('m-standard').addEventListener('click', () => { setOptions(P.montage.standard); render(); });
     addEventListener('hashchange', () => { const s = decode(location.hash.slice(1)); if (s) { apply(s); render(); } });
+    // 79: «−» и «+» у числа видео (только на телефоне — mobile.css)
+    form.querySelectorAll('.m-step').forEach(b => b.addEventListener('click', () => {
+      $('m-clips').value = clamp(clips() + Number(b.dataset.step), 1, P.montage.max_clips);
+      render();
+    }));
     form.hidden = false;
+    document.querySelector('.m-bar')?.removeAttribute('hidden');
+    // группы пунктов построены — mobile.js свернёт их на телефоне; свернул или развернул — обновить счётчики
+    document.addEventListener('montaggio:folded', render);
+    document.dispatchEvent(new CustomEvent('montaggio:folds'));
     render();
   }
 

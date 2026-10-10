@@ -136,10 +136,13 @@ compareRange.addEventListener('input',()=>{compareRange.parentElement.style.setP
     fadeTimer=setTimeout(finish,FADE+150);
   };
   // смена сцены: пункт — сразу; картинка без эффекта — сразу, с эффектом — растворение (CSS transition)
+  // 79: на телефоне описание выбранной сцены — под картинкой (#feature-note; на компьютере его нет — mobile.css)
+  const note=document.querySelector('#feature-note');
   const go=(i,animate)=>{
     items[current].style.setProperty('--scene-progress','0');
     current=i;elapsed=0;
     items.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));
+    if(note)note.textContent=items[i].querySelector('.feature-body').textContent;
     preview.dispatchEvent(new CustomEvent('montaggio:scene',{detail:{index:i}}));
     if(animate&&!preview.dataset.fx){dissolve(i);return;}
     finish();

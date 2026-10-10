@@ -1,0 +1,280 @@
+/* 79: вид для телефона (≤ 600 px) — README, «Мобильная версия (79)». Макеты — lab/mobile (выбор владельца 09.10:
+   главная А + нижняя панель всегда, «Собрать заказ» А, «Цены» А). Компьютер и планшет (шире 600 px) этот файл не
+   меняет: вне @media ниже — только «спрятать то, что есть лишь на телефоне». Условие — «не (max-width:600px)», а не
+   min-width:601px: при масштабе браузера ширина бывает дробной (600,5 px), и не попасть нельзя ни в одно из двух. Основной текст 16 px, кнопки ≥ 48 px, поля 16 px.
+   Анимируются только transform и opacity; слушателей прокрутки нет. */
+@media not all and (max-width:600px){.m-menu,.m-bar,.m-only,.m-fold-btn,.svc-tabs{display:none!important}}
+
+@media (max-width:600px){
+/* переход по якорю и фокус с клавиатуры: цель не под шапкой и не под нижней панелью (её высота — --bar-h, mobile.js) */
+html{scroll-padding-top:76px}
+html:has(.m-bar:not([hidden])){scroll-padding-bottom:calc(var(--bar-h, 77px) + 8px)}
+html.m-tabs{scroll-padding-top:132px}
+.skip{z-index:60}
+body{font-size:16px}
+.wrap{width:calc(100% - 32px)}
+h1,h2,h3{text-wrap:balance}
+
+/* шапка: закреплена сверху, меню — кнопка ☰ (details, без JS); где есть нижняя панель — кнопки в шапке нет */
+.header.wrap{position:sticky;top:0;z-index:30;width:100%;height:60px;margin:0;padding-inline:16px;gap:10px;justify-content:flex-start;background:#000}
+.header .wordmark{margin-right:auto;font-size:1.375rem}
+body:has(.m-bar:not([hidden])) .header-cta{display:none}
+.m-menu>summary{list-style:none;display:grid;place-items:center;width:48px;height:48px;margin-right:-10px;border-radius:12px;cursor:pointer}
+.m-menu>summary::-webkit-details-marker{display:none}
+.m-menu>summary span,.m-menu>summary span:before,.m-menu>summary span:after{display:block;width:22px;height:2px;border-radius:2px;background:var(--ink);transition:transform 160ms var(--ease-out),opacity 160ms}
+.m-menu>summary span{position:relative}
+.m-menu>summary span:before,.m-menu>summary span:after{content:"";position:absolute;left:0}
+.m-menu>summary span:before{transform:translateY(-7px)}
+.m-menu>summary span:after{transform:translateY(7px)}
+.m-menu[open]>summary span{background:transparent}
+.m-menu[open]>summary span:before{background:var(--ink);transform:rotate(45deg)}
+.m-menu[open]>summary span:after{background:var(--ink);transform:rotate(-45deg)}
+.m-menu nav{position:absolute;left:0;right:0;top:100%;display:grid;padding:4px 16px 12px;background:#0b0b0b;border-bottom:1px solid var(--line);box-shadow:0 24px 40px #000c}
+.m-menu nav a{display:flex;align-items:center;min-height:52px;border-bottom:1px solid #1c1c1a;font-size:1.125rem;font-weight:550}
+.m-menu nav a:last-child{border-bottom:0}
+.m-menu nav a[aria-current=page]{color:var(--lime)}
+
+/* нижняя панель: место в потоке (чтобы не закрывала низ страницы) и сама панель у низа экрана, под большим пальцем.
+   Окно «Согласие и cookie» — модальный <dialog> в верхнем слое: оно всегда поверх панели */
+.m-bar{height:var(--bar-h, calc(77px + env(safe-area-inset-bottom)))}
+.m-bar-in{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:center;gap:10px;min-height:77px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#0b0b0b;border-top:1px solid #232321}
+.m-bar-in .button{flex:1;min-height:52px;padding:14px 16px;font-size:1rem}
+.m-bar-icon{flex:none;width:64px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:12px;box-shadow:inset 0 0 0 1px #3d3d3a;font-size:.75rem;font-weight:600;color:var(--ink)}
+.m-bar-price{flex:none;min-width:96px;display:flex;flex-direction:column;line-height:1.15}
+.m-bar-price span{font-size:.8125rem;color:#8f8f89}
+.m-bar-price strong{font-size:1.375rem;font-weight:650;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.m-bar-in .button[aria-disabled=true]{opacity:.45;pointer-events:none}
+.m-bar-in .button{min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* узкие телефоны (320–360 px): шапка с «Открыть бота» (страницы без панели) — кнопка только значком; ничего не
+   выходит за край экрана */
+@media (max-width:360px){
+.header.wrap{gap:6px;padding-inline:12px}
+.header-cta{min-height:44px;width:44px;padding:0;justify-content:center}
+.header-cta .icon{display:block}
+.header-cta span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.hero h1{font-size:2rem}
+.hero-title-group{max-width:calc(100% - 64px)}
+.hero-title-group .hero-avatar{right:-58px}
+.summary{padding:14px 12px}
+.summary .button{white-space:normal;text-align:center;padding-inline:12px}
+}
+/* узкие телефоны (320–360 px): кнопка панели — в одну строку */
+@media (max-width:360px){.m-bar-in{gap:8px;padding-inline:12px}.m-bar-in .button{gap:8px;padding-inline:12px;font-size:.9375rem}.m-bar-icon{width:56px}.m-bar-price{min-width:80px}.m-bar-price strong{font-size:1.25rem}}
+@media (max-width:340px){.m-bar-in .button .icon{display:none}}
+
+/* раскрывающиеся блоки (кнопку ставит mobile.js / order.js только на телефоне; без JS всё раскрыто) */
+.m-fold-btn{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;padding:12px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:1.0625rem;font-weight:600;text-align:left;letter-spacing:-.01em}
+.m-fold-btn:after{content:"";flex:none;width:11px;height:11px;margin-right:4px;border-right:2px solid var(--lime);border-bottom:2px solid var(--lime);transform:translateY(-3px) rotate(45deg);transition:transform 180ms var(--ease-out)}
+.m-fold-btn[aria-expanded=true]:after{transform:translateY(3px) rotate(-135deg)}
+.m-folded:not(.is-open){display:none!important}
+.m-fold-btn+.m-folded.is-open{margin-top:12px}
+
+/* ---------- главная ---------- */
+/* первый экран: заголовок, «До / После», кнопка в бота */
+.hero{display:flex;flex-direction:column;align-items:stretch;gap:0;padding-top:14px;padding-bottom:0}
+.hero-copy{display:contents}
+.hero-title-group{order:1}
+.hero h1{font-size:clamp(2.4rem,11.6vw,2.85rem)}
+.hero-title-group .hero-avatar{right:-66px;top:-4px;width:60px;height:60px}
+.hero-intro{order:2;margin-top:12px}
+.hero-description{margin-top:0;max-width:none;font-size:1.0625rem;line-height:1.35;color:#bdbdb6}
+.hero-art{order:3;margin-top:16px;max-width:none}
+.compare-stage{height:340px;border-radius:20px;border-width:4px}
+.compare-hint{font-size:.8125rem}
+.example-note{position:static;margin-top:8px;padding:0;text-align:left;font-size:.8125rem;line-height:1.35}
+.hero-cta{order:4;width:100%;margin-top:14px;min-height:52px;font-size:1rem}
+
+/* заголовки разделов */
+.section{padding-block:44px 0}
+.section-heading{display:block;margin-bottom:0}
+.section-heading h2,.editing-copy h2,.pricing-copy h2,.faq-section h2{font-size:2.125rem;line-height:1.05}
+.section-heading>p,.editing-copy>p,.pricing-copy>p{max-width:none;margin-top:12px;padding:0;font-size:1rem;line-height:1.4;color:#bdbdb6}
+
+/* «Возможности»: переключатель сцен — над картинкой, вместе с ней и описанием на одном экране */
+.feature-layout{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+.feature-list{display:contents}
+.feature-sequence .feature-item{order:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 12px;border:0;border-radius:12px;background:#151515;box-shadow:inset 0 0 0 1px #2c2c29;overflow:hidden;text-align:center}
+.feature-sequence .feature-item:first-child{border-top:0}
+.feature-list>.feature-item:nth-child(1){grid-area:1 / 1}.feature-list>.feature-item:nth-child(2){grid-area:1 / 2}.feature-list>.feature-item:nth-child(3){grid-area:2 / 1}.feature-list>.feature-item:nth-child(4){grid-area:2 / 2}
+.feature-sequence .feature-item[aria-pressed=true]{padding-block:10px;background:var(--lime);box-shadow:none}
+.feature-heading{justify-content:center;font-size:1rem;font-weight:600;color:#d8d8d2}
+.feature-item[aria-pressed=true] .feature-heading{color:#080808}
+.feature-sequence .feature-item:after{height:3px;background:#0a0a0a66}
+.feature-preview{order:2;grid-row:3;grid-column:1 / -1;margin-top:2px;min-height:0;aspect-ratio:4 / 3;max-width:none;border-radius:18px}
+.feature-caption{left:10px;right:10px;bottom:10px;min-height:0;gap:10px;padding:10px 12px;border-radius:12px;background:#000d}
+.feature-caption p{font-size:.9375rem;line-height:1.3}
+.caption-icon{width:30px;height:30px}
+.small-disclosure{top:10px;right:10px;left:auto;bottom:auto;padding:4px 8px;border-radius:6px;background:#000b;font-size:.75rem}
+.feature-preview .sound-wave{top:46px;left:10px;right:10px;height:40px}
+/* узкие телефоны (360 × 740): картинка ниже — заголовок, кнопки, картинка и описание всё равно на одном экране */
+@media (max-width:374px){.feature-preview{aspect-ratio:3 / 2}}
+/* высота — по самому длинному описанию при этой ширине (mobile.js), чтобы смена сцены не двигала страницу */
+.feature-note{order:3;grid-row:4;grid-column:1 / -1;min-height:4.35em;margin-top:4px;font-size:1rem;line-height:1.45;color:#bdbdb6}
+/* «Приостановить показ» — поверх картинки, в левом верхнем углу (на одном экране с ней) */
+.sequence-pause{order:4;grid-row:3;grid-column:1 / -1;z-index:2;align-self:start;justify-self:start;min-height:44px;margin:8px;padding:0 12px;border-radius:10px;background:#000b;color:#e6e6df;font-size:.8125rem}
+
+/* «Всё лишнее — за кадром» */
+.editing-section{padding-block:44px 0}
+.editing-layout{display:block}
+.editing-benefits{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.editing-benefits span{gap:6px;padding:8px 12px;border-radius:999px;background:#151515;font-size:.875rem;color:#d8d8d2}
+.edit-demo{margin-top:20px;padding:16px;border-radius:18px}
+.demo-top{font-size:.875rem}
+.transcript{min-height:120px;margin:12px 0;font-size:1.25rem}
+.demo-bottom{gap:12px;margin-top:14px}
+.demo-bottom .button{min-height:48px;font-size:.9375rem}
+.demo-bottom>span{font-size:.875rem}
+.demo-disclosure{margin-top:12px;font-size:.8125rem}
+
+/* «Как это работает»: шаги — карточки, пример переписки — раскрывается */
+.how-section{width:calc(100% - 32px);margin:0 auto;padding:44px 0 0;border-radius:0;background:none}
+.how-section .section-heading{margin-bottom:0}
+.how-section .section-heading>p{font-size:1rem}
+.how-layout{display:block;margin-top:20px}
+.steps{gap:12px}
+.steps li{gap:14px;padding:16px;border-radius:16px;background:#111;border:1px solid var(--line)}
+.step-number{width:36px;height:36px;border:0;background:var(--lime);color:#000;font-size:.9375rem;font-weight:700}
+.steps h3{margin-top:6px;font-size:1.1875rem;letter-spacing:-.02em}
+.steps p{max-width:none;margin-top:6px;font-size:1rem;line-height:1.4}
+.how-layout .m-fold-btn{margin-top:16px}
+.chat-preview{max-width:none;transform:none;box-shadow:none}
+.chat-note{font-size:.8125rem}
+
+/* цены: 4 карточки «от N ₽», строки, кнопка расчёта */
+.pricing-section{display:flex;flex-direction:column;gap:0;padding-block:44px 0}
+.pricing-copy{display:contents}
+.pricing-copy h2{order:1}
+.pricing-copy>p{order:2}
+.pricing-details{order:3;align-self:stretch;margin-top:20px;padding:0;background:none}
+.pricing-copy .button{order:4;width:100%;margin-top:16px;min-height:52px;font-size:1rem}
+.price-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.price-card{display:flex;flex-direction:column;gap:6px;min-height:132px;padding:14px;border-radius:16px;background:#111;border:1px solid var(--line)}
+.price-card .emoji{font-size:1.375rem;line-height:1}
+.price-card b{font-size:1.0625rem;font-weight:650;letter-spacing:-.01em;line-height:1.2}
+.price-card small{margin-top:auto;font-size:.8125rem;color:#8f8f89}
+.price-card strong{font-size:1.375rem;font-weight:650;line-height:1.1;letter-spacing:-.02em;color:var(--lime)}
+.price-line{align-items:center;min-height:52px;padding:6px 14px;background:#111;border-bottom-color:#1f1f1d;font-size:.9375rem;color:#bdbdb6}
+.price-cards+.price-line{border-radius:16px 16px 0 0}
+.price-line:has(+p){border-bottom:0;border-radius:0 0 16px 16px}
+.price-line strong{font-weight:600}
+.pricing-details>p{margin-top:12px;font-size:.875rem;line-height:1.4;color:#8f8f89}
+
+/* частые вопросы */
+.faq-section{display:block;padding-block:44px 0;border-top:0}
+.faq-list{margin-top:12px}
+.faq-list summary{min-height:60px;padding-block:14px;font-size:1.0625rem;font-weight:600}
+.faq-list summary .icon{width:22px;height:22px;color:var(--lime)}
+.faq-list details p{max-width:none;padding-bottom:16px;font-size:1rem;line-height:1.45}
+
+/* «Не откладывайте» */
+.final-cta{width:calc(100% - 32px);margin-top:44px;padding:28px 20px 22px;border-radius:20px}
+.final-cta h2{font-size:2.25rem}
+.final-cta .final-tagline{margin-top:14px;font-size:1.25rem}
+.final-actions{align-items:stretch;gap:10px;margin-top:20px}
+.final-actions .button{min-height:52px;font-size:1rem}
+.channel-link{display:flex;align-items:center;justify-content:center;min-height:48px;font-size:1rem}
+
+/* ---------- подвал (все страницы) ---------- */
+.site-footer{display:block;margin-top:40px;padding-block:28px 24px}
+.final-cta+.site-footer{margin-top:40px;border-top:1px solid var(--line)}
+.site-footer-brand p{margin-top:8px;font-size:.9375rem}
+.site-footer-links{grid-template-columns:1fr 1fr;gap:0 16px;margin-top:20px}
+.site-footer-links a{display:flex;align-items:center;min-height:44px;font-size:.9375rem;line-height:1.2}
+.site-footer-contact{display:flex;flex-wrap:wrap;gap:0 18px;margin-top:12px}
+.site-footer-contact span{width:100%;font-size:.8125rem}
+.site-footer-contact a{display:flex;align-items:center;min-height:44px;font-size:.9375rem;color:var(--lime)}
+.site-footer-legal{margin-top:16px;font-size:.8125rem}
+
+/* ---------- внутренние страницы ---------- */
+.page-head{padding-block:12px 20px}
+.page-head h1{font-size:clamp(1.8rem,9vw,2.375rem);overflow-wrap:anywhere;hyphens:auto}  /* «конфиденциальности» — в ширину экрана */
+.page-head .lead{margin-top:12px;font-size:1rem;line-height:1.45}
+.breadcrumbs{margin-bottom:10px;font-size:.875rem}
+
+/* «Собрать заказ»: шаги карточками, услуга — плитки 2 × 2 с описанием выбранной, стандартный монтаж — плашкой,
+   остальные пункты — группами, которые раскрываются; итог и «Отправить в бота» — в нижней панели */
+.order{grid-template-columns:minmax(0,1fr);gap:16px;padding-bottom:8px}
+fieldset.step{min-width:0}
+/* документы: широкая таблица прокручивается в своей обёртке, а не вся страница (обёртка не растягивается по таблице) */
+.table-scroll{min-width:0;max-width:100%}
+.order-steps{gap:12px}
+.step{padding:18px 16px 20px}
+.step-title{align-items:center;gap:10px;font-size:1.3125rem}
+.step-title .step-no{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:var(--lime);color:#000;font-size:.9375rem;font-weight:700}
+.step-hint{margin-bottom:14px;font-size:.9375rem}
+.choices,.choices.services-choice{grid-template-columns:1fr 1fr;gap:8px}
+.choices.compact{grid-template-columns:repeat(3,1fr)}
+.choice .face{padding:12px}
+.choice .face b{font-size:1rem}
+.choice .face small{font-size:.875rem}
+.services-choice .choice .face{min-height:84px;justify-content:center}
+.services-choice .choice .face small{display:none}
+.services-choice .choice .face b{flex-direction:column;gap:6px;font-size:1rem}
+/* 320–360 px: две плитки в ряд без выхода за край («Нейромонтаж» — самое длинное слово) */
+.choices:not(.compact){grid-template-columns:repeat(2,minmax(0,1fr))}
+.choices.compact{grid-template-columns:repeat(3,minmax(0,1fr))}
+.choice .face b{overflow-wrap:anywhere;hyphens:auto}
+@media (max-width:360px){.step{padding:16px 12px 18px}.choice .face{padding:10px}.services-choice .choice .face b{font-size:.9rem}}
+.svc-desc{margin-top:10px;padding:12px 14px;border-radius:12px;background:#0b0b0b;font-size:.9375rem;line-height:1.4;color:#c3c3bb}
+.field-row{display:grid;gap:16px}
+.range-field label{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:1rem;color:#c3c3bb}
+.range-field output{font-size:1.5rem}
+.range-field input[type=range]{height:44px}
+.range-scale{font-size:.8125rem}
+.num-field{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:6px;padding:10px 12px 10px 16px;border-radius:14px;background:#0b0b0b;border:1px solid #262622}
+.num-field label{grid-column:1;grid-row:1;font-weight:600}
+.num-field span{grid-column:1;grid-row:2;font-size:.875rem}
+.num-field .m-step{grid-row:1 / 3;width:48px;height:48px;border:0;border-radius:12px;background:#1d1d1b;color:var(--ink);font-size:1.5rem;line-height:1}
+.num-field input{grid-row:1 / 3;width:48px;padding:10px 4px;border:0;background:none;text-align:center;font-size:1.25rem;font-weight:650;-moz-appearance:textfield}
+.num-field input::-webkit-inner-spin-button,.num-field input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.opt{gap:12px;min-height:52px;padding:12px}
+.opt b{font-size:1rem;font-weight:500;line-height:1.35}
+.opt input{width:22px;height:22px}
+.step-note{font-size:.875rem}
+#m-options .opt-group:not(.opt-exp){display:none}
+#m-options .opt-exp{margin:22px 0 0;font-size:1.125rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+#m-options .m-fold-btn{min-height:56px;margin-top:8px;padding:0 14px;border:1px solid #262622;border-radius:14px;background:#181816}
+#m-options .m-fold-btn .m-cnt{margin-left:auto;font-size:.875rem;font-weight:500;color:#8f8f89}
+#m-options .m-folded.is-open{margin-top:8px}
+.std-plate{padding:16px;border-radius:16px;background:#151a05;box-shadow:inset 0 0 0 2px var(--lime)}
+.std-plate-head{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:1.0625rem;font-weight:650}
+.std-plate-head span{flex:none;padding:4px 8px;border-radius:6px;background:var(--lime);color:#080808;font-size:.8125rem;font-weight:700}
+.std-plate p{margin-top:6px;font-size:.9375rem;color:#cdd6b2}
+.std-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.std-chips span{padding:6px 10px;border-radius:999px;background:#253000;font-size:.875rem;color:#e6f3b8}
+#m-options .std-plate+.m-fold-btn{justify-content:center;margin-top:8px;min-height:48px;padding:0;border:0;border-radius:12px;box-shadow:inset 0 0 0 1px #4a5d00;background:none;font-size:1rem}
+#m-options .std-plate+.m-fold-btn:after{display:none}
+.service-card{scroll-margin-top:136px}
+.step-actions .button{width:100%;min-height:48px;font-size:1rem}
+.summary{padding:18px 16px;gap:12px}
+.summary .total strong{font-size:1.75rem}
+.summary dl{font-size:.9375rem}
+.summary .price-note{font-size:.875rem}
+.summary .button{min-height:52px;font-size:1rem}
+.summary .hint{font-size:.9375rem}
+.summary .hint .m-fold-btn{min-height:44px;padding:0;border:0;color:#141410;font-size:1rem}
+.summary .hint .m-fold-btn:after{border-color:#141410}
+.summary .hint .m-folded.is-open{margin-top:6px}
+.summary .code-line{font-size:.875rem}
+
+/* «Услуги и цены»: переключатель услуг вместо четырёх карточек подряд (mobile.js); без JS — все карточки */
+.svc-tabs{display:none}
+.m-tabs .svc-tabs{position:sticky;top:60px;z-index:20;display:flex;gap:6px;margin:0 0 4px;padding:8px 16px;overflow-x:auto;background:#000;border-bottom:1px solid #161616;scrollbar-width:none}
+.svc-tabs::-webkit-scrollbar{display:none}
+.svc-tabs button{flex:none;min-height:44px;padding:8px 14px;border:0;border-radius:12px;background:#151515;box-shadow:inset 0 0 0 1px #2c2c29;color:#d8d8d2;font-size:.9375rem;font-weight:600;white-space:nowrap}
+.svc-tabs button[aria-pressed=true]{background:var(--lime);color:#080808;box-shadow:none}
+.m-tabs .services .service-card:not(.is-current){display:none}
+.services{gap:12px;padding-top:12px;padding-bottom:16px}
+.service-card{gap:12px;padding:20px 16px}
+.service-card h2{font-size:1.75rem}
+.service-card>p{font-size:1rem;line-height:1.45}
+.service-card .price-rows li{align-items:center;min-height:52px;padding:8px 0;font-size:.9375rem}
+.service-card .price-rows strong{font-size:1.0625rem}
+.service-card .m-fold-btn{border-bottom:0;font-size:1rem}
+.service-card .card-foot .button{width:100%;min-height:52px;font-size:1rem}
+.price-table{font-size:.875rem}
+.prices-notes{padding-bottom:16px;font-size:1rem}
+.prices-notes h2{margin-bottom:0;font-size:1.0625rem}
+.prices-notes h2 .m-fold-btn{font-size:1.0625rem}
+.prices-notes .m-folded.is-open{margin-top:12px}
+}

@@ -98,10 +98,10 @@
       errMin: "Добавьте фото: {label}.",
       photosHint: "1–8 фото, где хорошо видно лицо: свет спереди, без очков и масок. Можно себя, своего ребёнка или человека, который согласился. Чужие фото без согласия — нельзя.",
       presetHint: "1–3 фото: вы, ваш ребёнок или человек, который согласился. Чужие фото без согласия — нельзя. Нейросеть нарисует лист персонажа — портрет, поворот в полный рост, лицо, эмоции, позы — за 5–7 минут после оплаты.",
-      addPhoto: "Добавить фото", removePhoto: "Убрать фото", faceOk: "На фото — я (или человек, который согласился)",
+      addPhoto: "Добавить фото", removePhoto: "Убрать фото",
       send: "Отправить", sending: "Отправляем… {p}%", sent: "Отправлено",
       errCount: "Можно не больше {n} фото.", errSize: "Фото больше 10 МБ: {name}", errTotal: "Все фото вместе — не больше 40 МБ.",
-      errType: "Это не фото: {name}", errNet: "Нет связи с сервером — попробуйте ещё раз.", errFace: "Отметьте, что на фото — вы.",
+      errType: "Это не фото: {name}", errNet: "Нет связи с сервером — попробуйте ещё раз.",
       errUpload: "Файлы слишком большие или связь прервалась — попробуйте фото поменьше.",
       errNeed: "Добавьте хотя бы одно фото.",
       checking: "Проверяем фото…", checkingPreset: "Проверяем пресет…", toPay: "К оплате", orderNo: "Заказ №{n}",
@@ -141,10 +141,10 @@
       errMin: "Add photos: {label}.",
       photosHint: "1–8 photos with a clearly visible face: light from the front, no glasses or masks. You, your child or a person who agreed. Other people's photos without consent are not allowed.",
       presetHint: "1–3 photos: you, your child or a person who agreed. Other people's photos without consent are not allowed. The AI will draw a character sheet — portrait, full-length turnaround, face, emotions, poses — in 5–7 minutes after payment.",
-      addPhoto: "Add photos", removePhoto: "Remove photo", faceOk: "It's me in the photos (or a person who agreed)",
+      addPhoto: "Add photos", removePhoto: "Remove photo",
       send: "Send", sending: "Sending… {p}%", sent: "Sent",
       errCount: "No more than {n} photos.", errSize: "Photo larger than 10 MB: {name}", errTotal: "All photos together — no more than 40 MB.",
-      errType: "Not a photo: {name}", errNet: "No connection to the server — please try again.", errFace: "Confirm that it's you in the photos.",
+      errType: "Not a photo: {name}", errNet: "No connection to the server — please try again.",
       errUpload: "The files are too large or the connection dropped — try smaller photos.",
       errNeed: "Add at least one photo.",
       checking: "Checking the photos…", checkingPreset: "Checking the preset…", toPay: "To pay", orderNo: "Order #{n}",
@@ -184,10 +184,10 @@
       errMin: "Aggiungi foto: {label}.",
       photosHint: "1–8 foto con il volto ben visibile: luce frontale, senza occhiali né mascherine. Tu, tuo figlio o una persona che ha acconsentito. Foto di altri senza consenso — no.",
       presetHint: "1–3 foto: tu, tuo figlio o una persona che ha acconsentito. Foto di altri senza consenso — no. L'IA disegnerà la scheda del personaggio — ritratto, giro completo, volto, emozioni, pose — in 5–7 minuti dopo il pagamento.",
-      addPhoto: "Aggiungi foto", removePhoto: "Rimuovi foto", faceOk: "Nelle foto ci sono io (o una persona che ha acconsentito)",
+      addPhoto: "Aggiungi foto", removePhoto: "Rimuovi foto",
       send: "Invia", sending: "Invio… {p}%", sent: "Inviato",
       errCount: "Non più di {n} foto.", errSize: "Foto oltre 10 MB: {name}", errTotal: "Tutte le foto insieme — non più di 40 MB.",
-      errType: "Non è una foto: {name}", errNet: "Nessuna connessione al server — riprova.", errFace: "Conferma che nelle foto ci sei tu.",
+      errType: "Non è una foto: {name}", errNet: "Nessuna connessione al server — riprova.",
       errUpload: "File troppo grandi o connessione interrotta — prova con foto più piccole.",
       errNeed: "Aggiungi almeno una foto.",
       checking: "Controlliamo le foto…", checkingPreset: "Controlliamo il preset…", toPay: "Da pagare", orderNo: "Ordine n. {n}",
@@ -681,40 +681,31 @@
     return t.ask || [{ key: "P1", kind: "face", preset: true, min: 1, max: 8, labels: one(T("yourFace")),
       hint: one(T("photosHint")), group: null }];
   }
-  // «На фото — я»: только первый человек — его лицо и фото в рост (до следующего человека); товар, машина, вещи — без
-  function personKeys(ask) {
-    const i = ask.findIndex((b) => b.kind === "face" || b.kind === "body");
-    const keys = new Set();
-    if (i < 0) return keys;
-    keys.add(ask[i].key);
-    for (let j = i + 1; j < ask.length && ask[j].kind !== "face"; j++) if (ask[j].kind === "body") keys.add(ask[j].key);
-    return keys;
-  }
+  // галочки «На фото — я» нет ни у тренда, ни у пресета (владелец 12.10): согласие клиента — общее в боте, бот face_ok
+  // не проверяет; приложение шлёт face_ok=1. Подсказка про чужие фото без согласия — в hint блоков
 
   // --- фото клиента (91): только в памяти до отправки, превью — blob:, после — revokeObjectURL ---
   const PHOTO_TYPES = /^image\/(jpeg|png|webp|heic|heif)$/;
   const MB = 1024 * 1024;
   const MAX_PHOTOS = 8;                // всего в заказе (контракт API)
-  let photos = { key: "", blocks: {}, preset: false, face: false, groupOpen: false };
+  let photos = { key: "", blocks: {}, preset: false, groupOpen: false };
   const listOf = (k) => photos.blocks[k] || (photos.blocks[k] = []);
   const allPhotos = () => Object.values(photos.blocks).flat();
   const usesPreset = (b) => b.preset && photos.preset;
   const countOf = (b) => usesPreset(b) ? 0 : listOf(b.key).length;
   function clearPhotos() {
     allPhotos().forEach((p) => p.url && URL.revokeObjectURL(p.url));
-    photos = { key: "", blocks: {}, preset: false, face: false, groupOpen: false };
+    photos = { key: "", blocks: {}, preset: false, groupOpen: false };
   }
   function dropBlock(k) {
     listOf(k).forEach((p) => p.url && URL.revokeObjectURL(p.url));
     photos.blocks[k] = [];
   }
-  const needFace = (ask) => ask.some((b) => personKeys(ask).has(b.key) && countOf(b) > 0);
   // чего не хватает до «Дальше» — текст ошибки; всё есть — ""
   function missing(ask) {
     for (const b of ask)
       if (b.min > 0 && !usesPreset(b) && countOf(b) < b.min) return T("errMin", { label: loc(b.labels) });
     if (!ask.some((b) => usesPreset(b) || countOf(b) > 0)) return T("errNeed");
-    if (needFace(ask) && !photos.face) return T("errFace");
     return "";
   }
   function addPhotos(b, files) {
@@ -783,15 +774,11 @@
       group = el("details", { class: "ask-group", open, ontoggle: (e) => { photos.groupOpen = e.target.open; } },
         el("summary", { text: loc(grouped[0].group) }), grouped.map((b) => blockEl(b, t)));
     }
-    const face = needFace(ask) ? el("label", { class: "face-check" },
-      el("input", { type: "checkbox", id: "face-ok", checked: photos.face,
-        onchange: (e) => { photos.face = e.target.checked; updateSend(); } }),
-      el("span", { text: T("faceOk") })) : null;
     const send = btn(t ? T("next") : T("send"), "send-photos", "primary full", {}, t ? "arrow" : "send");
     send.id = "send-photos";
     const node = el("div", { class: "photo-page" },
       pageTopEl(t ? T("askTitle") : T("presetTitle"), t ? summaryLine(t) : T("presetSub")),
-      plain.map((b) => blockEl(b, t)), group, face,
+      plain.map((b) => blockEl(b, t)), group,
       el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
       el("div", { id: "flow-error", class: "form-error", role: "alert" }),
       el("div", { class: "workflow-actions" }, send));
@@ -819,7 +806,7 @@
       form.append("quality", qualityOf(t));
     }
     form.append("use_preset", usePreset ? "1" : "0");
-    form.append("face_ok", needFace(ask) && photos.face ? "1" : "0");
+    form.append("face_ok", "1");
     form.append("lang", LANG);
     if (t) form.append("counts", ask.map(countOf).join(","));
     let n = 0;

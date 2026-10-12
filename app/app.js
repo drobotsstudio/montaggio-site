@@ -300,6 +300,10 @@
     ["replace", "🔁 Замена", "Персонаж или предмет в видео — на ваш образец."],
     ["motion", "🕺 Перенос движения", "Персонаж с картинки повторит ваши движения и жесты."],
   ];
+  // режимы нейромонтажа в архиве — на экране не показываются, код, цена и тексты на месте; вернуть — убрать из списка.
+  // motion — архив, владелец 13.10 — вместо него будут Стили Higgsfield (в боте скрыт с 12.10)
+  const HIDDEN_MODES = ["motion"];
+  const neuroModeOk = (m) => !!NEURO_CODES[m] && !HIDDEN_MODES.includes(m);
   const PRESET_STYLES = [["real", "📷 Реализм"], ["cartoon", "🎨 Мультфильм"], ["anime", "🌸 Аниме"], ["3d", "🧸 3D"]];
   const QUALITIES = ["480p", "720p", "1080p"];
   const MONTAGE_SECONDS = [15, 30, 45, 60, 90, 120, 180];
@@ -324,7 +328,7 @@
       if (Number.isInteger(d.clips) && d.clips >= 1 && d.clips <= 10) base.clips = d.clips;
       if (Array.isArray(d.opts)) base.opts = STANDARD.filter((n) => d.opts.includes(n));
     } else if (d.kind === "neuro") {
-      if (NEURO_CODES[d.mode]) base.mode = d.mode;
+      if (neuroModeOk(d.mode)) base.mode = d.mode;            // архивный режим — «Перерисовка»
       if (SHORT_SECONDS.includes(d.sec)) base.sec = d.sec;
       if (QUALITIES.includes(d.q)) base.q = d.q;
     } else if (STYLE_CODES[d.style]) base.style = d.style;
@@ -1074,7 +1078,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
   }
   function neuroFields(d) {
     const mode = NEURO_MODES.find((m) => m[0] === d.mode);
-    return `<h2>🪄 Нейромонтаж</h2><p>${mode[2]}</p><div class="field"><span class="field-label">Режим</span>${chips("mode", NEURO_MODES, d.mode)}</div><div class="field"><label for="n-sec">Длина видео</label>${select("n-sec", SHORT_SECONDS, d.sec, (v) => v + " сек")}</div><div class="field"><span class="field-label">Качество</span>${chips("q", QUALITIES.map((q) => [q, q]), d.q)}</div>`;
+    return `<h2>🪄 Нейромонтаж</h2><p>${mode[2]}</p><div class="field"><span class="field-label">Режим</span>${chips("mode", NEURO_MODES.filter((m) => neuroModeOk(m[0])), d.mode)}</div><div class="field"><label for="n-sec">Длина видео</label>${select("n-sec", SHORT_SECONDS, d.sec, (v) => v + " сек")}</div><div class="field"><span class="field-label">Качество</span>${chips("q", QUALITIES.map((q) => [q, q]), d.q)}</div>`;
   }
   function presetFields(d) {
     return `<h2>🧩 Пресет персонажа</h2><p>Лист персонажа — портрет, поворот в полный рост, лицо, эмоции, позы — и файлы без фона: по ним нейросеть держит внешность в нейромонтаже.</p><div class="field"><span class="field-label">Стиль</span>${chips("style", PRESET_STYLES, d.style)}</div>`;
@@ -1315,7 +1319,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       draft.opts = draft.opts.includes(n) ? draft.opts.filter((x) => x !== n) : STANDARD.filter((x) => x === n || draft.opts.includes(x));
       changed();
     } else if (draft && a === "clips") { draft.clips = Math.min(10, Math.max(1, draft.clips + Number(v))); changed(); }
-    else if (draft && a === "mode" && NEURO_CODES[v]) { draft.mode = v; changed(); }
+    else if (draft && a === "mode" && neuroModeOk(v)) { draft.mode = v; changed(); }
     else if (draft && a === "q" && QUALITIES.includes(v)) { draft.q = v; changed(); }
     else if (draft && a === "style" && STYLE_CODES[v]) { draft.style = v; changed(); }
     else if (a === "order") order();

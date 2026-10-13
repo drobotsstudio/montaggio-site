@@ -1,6 +1,6 @@
 /* Mini App Montaggio. Монтаж и Нейромонтаж собираются здесь и оформляются в боте кодом заказа ?start=w1-….
    Тренды, стили, AI-видео и свой персонаж (пресет) — заказ с фото, видео или описанием, оплата и результат — внутри
-   приложения через сервер заказов; «Картинки» — раздел бота (?start=w1-i).
+   приложения через сервер заказов; «Картинки» — пока «скоро» (владелец 13.10).
    Приложение ничего не решает о деньгах: цену, номер заказа и ссылки оплаты показывает из ответа сервера, который
    получил их от бота. Сеть: свой адрес (prices.json, ролики трендов), https://api.montaggio.shop (initData — только в
    заголовке), превью стилей и скрипт Telegram. */
@@ -146,7 +146,7 @@
       cAiv: ["🎥 AI-видео", "Опишите — нейросеть снимет видео"],
       cImg: ["🖼 Картинки", "Создать по описанию, изменить фото, убрать фон"],
       cChar: ["🧩 Свой персонаж", "Лист персонажа по вашим фото — для трендов и нейромонтажа"],
-      cImgNote: "Картинки открываются в чате бота.",
+      soon: "скоро", imgSoon: "🖼 Картинки — на стадии разработки. Скоро!",
       ownStory: ["✍️ Свой сюжет", "Опишите, что снять"],
       aivTitle: "Создать видео", aivSub: "Нейросеть снимет видео по вашему описанию",
       aivWhat: "Что снять?", aivPh: "Например: кот-космонавт идёт по Луне, мультфильм…",
@@ -230,7 +230,7 @@
       cAiv: ["🎥 AI video", "Describe it — the AI will shoot the video"],
       cImg: ["🖼 Images", "Create from a description, edit a photo, remove the background"],
       cChar: ["🧩 Your character", "A character sheet from your photos — for trends and AI video editing"],
-      cImgNote: "Images open in the bot chat.",
+      soon: "soon", imgSoon: "🖼 Images — in development. Coming soon!",
       ownStory: ["✍️ Your own story", "Describe what to shoot"],
       aivTitle: "Create a video", aivSub: "The AI will shoot a video from your description",
       aivWhat: "What to shoot?", aivPh: "For example: a cat astronaut walking on the Moon, cartoon…",
@@ -314,7 +314,7 @@
       cAiv: ["🎥 Video AI", "Descrivilo — l'IA girerà il video"],
       cImg: ["🖼 Immagini", "Crea da una descrizione, modifica una foto, rimuovi lo sfondo"],
       cChar: ["🧩 Il tuo personaggio", "Scheda del personaggio dalle tue foto — per trend e montaggio IA"],
-      cImgNote: "Le immagini si aprono nella chat del bot.",
+      soon: "presto", imgSoon: "🖼 Immagini — in sviluppo. Presto!",
       ownStory: ["✍️ La tua storia", "Descrivi cosa girare"],
       aivTitle: "Crea un video", aivSub: "L'IA girerà un video dalla tua descrizione",
       aivWhat: "Cosa girare?", aivPh: "Per esempio: un gatto astronauta cammina sulla Luna, cartone animato…",
@@ -1691,14 +1691,6 @@
     if (inTelegram && tg.openTelegramLink) tg.openTelegramLink(BOT_URL + path);
     else location.href = BOT_URL + path;
   }
-  // 96C: «🖼 Картинки» — раздел бота кодом w1-i (доступ решает бот); как «Оформить в боте»: чат бота, окно закрываем
-  function openImages() {
-    const url = BOT_URL + "?start=w1-i";
-    if (inTelegram && tg.openTelegramLink) {
-      tg.openTelegramLink(url);
-      setTimeout(() => tg.close(), 300);
-    } else location.href = url;
-  }
 
   // --- экраны ---
   function home() {
@@ -1719,14 +1711,15 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
   function editLanding() {
     return `<div class="editor-landing">${pageTop("Изменить видео", "Что сделать с вашим видео?")}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="montage">${icon("scissors")}<div><span>🎬 Монтаж</span><small>Вырежем паузы, слова-паразиты и дубли, почистим голос</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="neuro">${icon("spark")}<div><span>🪄 Нейромонтаж</span><small>Новый стиль, фон или персонаж — нейросеть перерисует видео</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>🎨 ${esc(T("tileStyle")[0])}</span><small>${esc(T("tileStyle")[1])}</small></div>${icon("arrow")}</button></div><p class="bottom-note">Для монтажа и нейромонтажа видео пришлёте в чате с ботом. Стили — видео загружается прямо здесь.</p></div>`;
   }
-  // 96C: вкладка «Создать» — AI-видео (в приложении), картинки (в боте), свой персонаж (в приложении)
+  // 96C: вкладка «Создать» — AI-видео и свой персонаж (в приложении); «Картинки» — на стадии разработки (владелец
+  // 13.10: в бота не уводим; пометка «скоро», касание — короткое сообщение). Код w1-i бот по-прежнему понимает
   function createPage() {
-    const tile = (ic, [t, s], attrs, cls = "") =>
-      `<button class="product-tile ${cls}" ${attrs}>${icon(ic)}<div><span>${esc(t)}</span><small>${esc(s)}</small></div>${icon("arrow")}</button>`;
+    const tile = (ic, [t, s], attrs, cls = "", tag = "") =>
+      `<button class="product-tile ${cls}" ${attrs}>${icon(ic)}<div><span>${esc(t)}${tag ? ` <i class="soon-tag">${esc(tag)}</i>` : ""}</span><small>${esc(s)}</small></div>${icon("arrow")}</button>`;
     return `<div class="editor-landing">${pageTop(esc(T("createTitle")), esc(T("createSub")))}<div class="service-pick">${
       AIVIDEO_ON ? tile("video", T("cAiv"), 'data-action="nav" data-to="create/video"', "active") : ""}${
-      tile("image", T("cImg"), 'data-action="images"')}${tile("user", T("cChar"), 'data-action="new-preset"', AIVIDEO_ON ? "" : "active")
-    }</div><p class="bottom-note">${esc(T("cImgNote"))}</p></div>`;
+      tile("image", T("cImg"), 'data-action="images" aria-disabled="true"', "soon", T("soon"))}${
+      tile("user", T("cChar"), 'data-action="new-preset"', AIVIDEO_ON ? "" : "active")}</div></div>`;
   }
   const chips = (action, items, current) =>
     `<div class="choice-row">${items.map(([v, label]) => `<button class="choice ${v === current ? "selected" : ""}" data-action="${action}" data-value="${esc(v)}" aria-pressed="${v === current}">${esc(label)}</button>`).join("")}</div>`;
@@ -1950,7 +1943,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       nav(presetReturn ? "preset-new" : "preset");
     } else if (a === "new-preset") { presetReturn = ""; nav("preset"); }
     else if (a === "preset-style" && has(STYLE_CODES, v) && !sending) { presetStyle = v; render(); }
-    else if (a === "images") openImages();
+    else if (a === "images") toast(T("imgSoon"));
     else if (a === "aiv-ratio" && AIV_RATIOS.includes(v) && !sending) { aiv.ratio = v; aivTouched(); render(); }
     else if (a === "aiv-more") { aiv.more = true; render(); }
     else if (a === "aiv-q" && QUALITIES.includes(v) && !sending) { aiv.q = v; aivTouched(); render(); }

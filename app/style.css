@@ -3032,6 +3032,25 @@ a.button {
   background: linear-gradient(transparent, #0009);
   pointer-events: none;
 }
+.tcover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* ролик проявляется поверх обложки, только когда реально заиграл (.live — по событию playing) */
+.tmedia video.tvideo {
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.tmedia video.tvideo.live {
+  opacity: 1;
+}
+.sample .tcover {
+  object-fit: contain;
+  background: #000;
+}
 .tvideo,
 .tmedia video {
   position: absolute;

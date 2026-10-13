@@ -26,6 +26,7 @@
   const SERVICES = {montage: '🎬 Монтаж', neuro: '🪄 Нейромонтаж', preset: '🧩 Пресет персонажа', aivideo: '🎥 AI-видео',
     sites: '🖥 Сайты и презентации'};
   const NEURO_MODES = {redraw: ['r', '🎨 Перерисовка'], replace: ['s', '🔁 Замена'], motion: ['m', '🕺 Перенос движения']};
+  const HIDDEN_MODES = ['motion'];      // в архиве с 13.10: на странице скрыт, код и цена на месте; вернуть — убрать из списка
   const PRESET_STYLES = {real: ['r', '📷 Реализм'], cartoon: ['c', '🎨 Мультфильм'], anime: ['a', '🌸 Аниме'], '3d': ['3', '🧸 3D']};
   const RATIOS = {'9:16': ['916', '9:16, вертикальное'], '16:9': ['169', '16:9, горизонтальное'], '1:1': ['11', '1:1, квадрат'],
     '4:3': ['43', '4:3'], '3:4': ['34', '3:4'], '21:9': ['219', '21:9, широкое кино'], adaptive: ['a', 'на выбор нейросети']};
@@ -243,7 +244,8 @@
     if ((m = /^w1-n-([rsm])-(\d{1,2})-(480|720|1080)$/.exec(code))) {
       const sec = Number(m[2]);
       if (!inRange(sec, P.neuro.min_sec, P.neuro.max_sec)) return null;
-      return {service: 'neuro', mode: keyOf(NEURO_MODES, m[1]), sec, q: `${m[3]}p`};
+      const mode = keyOf(NEURO_MODES, m[1]);
+      return {service: 'neuro', mode: HIDDEN_MODES.includes(mode) ? 'redraw' : mode, sec, q: `${m[3]}p`};
     }
     if ((m = /^w1-p-([rca3])$/.exec(code))) return {service: 'preset', style: keyOf(PRESET_STYLES, m[1])};
     if ((m = /^w1-v-(916|169|11|43|34|219|a)-(\d{1,2})-(480|720|1080)-([01])$/.exec(code))) {
@@ -412,7 +414,7 @@
   }
 
   // ошибка загрузки цен — отдельно от ошибок init: баг в коде не должен выдаваться за «цены не загрузились»
-  fetch('prices.json?v=5', {credentials: 'same-origin'})
+  fetch('prices.json?v=6', {credentials: 'same-origin'})
     .then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
     .then(init, () => {
       const box = document.createElement('div');

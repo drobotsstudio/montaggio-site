@@ -1,9 +1,8 @@
-/* Mini App Montaggio. Промпт 83 — интерфейс партнёра (montaggio-miniapp, 10.10.2026) без имитаций: Монтаж, Нейромонтаж
-   и Пресет собираются здесь и оформляются в боте кодом заказа ?start=w1-… (README сайта, «Код заказа» и «Mini App»).
-   Промпт 91 — тренды: каталог, заказ с фото или пресетом, оплата и результат — внутри приложения через сервер приёма
-   заказов (montaggio-server/API.md). Приложение ничего не решает о деньгах: цену, номер заказа и ссылки оплаты
-   показывает из ответа сервера, который получил их от бота. Сеть: свой адрес (prices.json, ролики трендов),
-   https://api.montaggio.shop (initData — только в заголовке) и скрипт Telegram. */
+/* Mini App Montaggio. Монтаж, Нейромонтаж и Пресет собираются здесь и оформляются в боте кодом заказа ?start=w1-….
+   Тренды и стили — каталог, заказ с фото или видео, оплата и результат — внутри приложения через сервер заказов.
+   Приложение ничего не решает о деньгах: цену, номер заказа и ссылки оплаты показывает из ответа сервера, который
+   получил их от бота. Сеть: свой адрес (prices.json, ролики трендов), https://api.montaggio.shop (initData — только в
+   заголовке), превью стилей и скрипт Telegram. */
 (() => {
   "use strict";
   const BOT = "Montaggio_bot";
@@ -346,7 +345,7 @@
     ["motion", "🕺 Перенос движения", "Персонаж с картинки повторит ваши движения и жесты."],
   ];
   // режимы нейромонтажа в архиве — на экране не показываются, код, цена и тексты на месте; вернуть — убрать из списка.
-  // motion — архив, владелец 13.10 — вместо него будут Стили Higgsfield (в боте скрыт с 12.10)
+  // motion — в архиве с 13.10 (вместо него — раздел «Стили»)
   const HIDDEN_MODES = ["motion"];
   const neuroModeOk = (m) => !!NEURO_CODES[m] && !HIDDEN_MODES.includes(m);
   const PRESET_STYLES = [["real", "📷 Реализм"], ["cartoon", "🎨 Мультфильм"], ["anime", "🌸 Аниме"], ["3d", "🧸 3D"]];
@@ -477,7 +476,9 @@
       const x = new XMLHttpRequest();
       x.open("POST", API + "/api/orders");
       x.setRequestHeader("X-Telegram-Init-Data", initData());
-      x.timeout = 180000;
+      let bytes = 0;
+      for (const v of form.values()) if (typeof v !== "string") bytes += v.size;
+      x.timeout = 180000 + Math.ceil(bytes / (128 * 1024)) * 1000;     // 3 мин + 1 с на каждые 128 КБ
       x.upload.addEventListener("progress", (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); });
       x.addEventListener("load", () => {
         let body = null;
@@ -530,10 +531,10 @@
     }, () => { catalogState = "down"; }).finally(() => { catalogAt = Date.now(); render(); });
   }
 
-  // --- стили (92C): своя карусель и свой экран, отдельно от трендов. Каталог — GET /api/styles; превью — ролики
-  // Higgsfield с их адреса (CSP media-src/img-src), только https://static-public-media.higgsfield.ai/ ---
+  // --- стили: своя карусель и свой экран, отдельно от трендов. Каталог — GET /api/styles; превью — только с двух
+  // адресов ниже (они же в CSP media-src/img-src) ---
   const STYLE_MEDIA = "https://static-public-media.higgsfield.ai/";
-  const STYLE_CDN = "https://cdn.higgsfield.ai/";          // часть превью Higgsfield — на их CDN (13.10)
+  const STYLE_CDN = "https://cdn.higgsfield.ai/";
   const STYLE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
   const styleUrl = (u) => typeof u === "string" && u.length <= 1024 && (u.startsWith(STYLE_MEDIA) || u.startsWith(STYLE_CDN))
     && /^[A-Za-z0-9_\-./:%~]+$/.test(u) && !u.includes("..") ? u : "";
@@ -646,16 +647,28 @@
   // --- тренды (91): карточки с готовым видео, ролики — со своего адреса по id ---
   const media = (id, kind) => `trends/${encodeURIComponent(id)}/${kind}`;
   const REDUCED = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // ролик с обложкой: картинка видна всегда, ролик проявляется только когда реально заиграл (событие playing) —
+  // не заиграл (iOS, кодек, экономия трафика) — остаётся обложка, а не пустая карточка. Без crossorigin
   function videoEl(id, kind, { controls = false, lazy = true } = {}) {
-    const v = el("video", { class: "tvideo", poster: media(id, kind + ".webp"), preload: lazy ? "none" : "metadata",
-      playsinline: true, "webkit-playsinline": true, loop: true, disablepictureinpicture: true, controls: controls || REDUCED,
-      "aria-label": T("result") });
+    return liveVideo(media(id, kind + ".mp4"), T("result"), { controls, lazy });
+  }
+  function liveVideo(src, label, { controls = false, lazy = true, fallback = "" } = {}) {
+    const v = el("video", { class: "tvideo" + (REDUCED ? " live" : ""), preload: lazy ? "none" : "metadata",
+      playsinline: true, "webkit-playsinline": true, autoplay: !REDUCED, loop: true, disablepictureinpicture: true,
+      controls: controls || REDUCED, "aria-label": label });
     v.muted = true;
     v.defaultMuted = true;
-    v.dataset.src = media(id, kind + ".mp4");
+    v.dataset.src = src;
+    if (fallback) v.dataset.fallback = fallback;
     v.dataset.auto = REDUCED ? "0" : "1";
+    v.addEventListener("playing", () => v.classList.add("live"));
     return v;
   }
+  const coverEl = (src, lazy = true, fallback = "") => {
+    const img = el("img", { class: "tcover", src, alt: "", loading: lazy ? "lazy" : null, decoding: "async" });
+    if (fallback) img.dataset.fallback = fallback;
+    return img;
+  };
   function priceFrom(t) {
     const p = t.prices[qualitiesOf(t)[0]];
     return T("from", { p: money(p.rub, p.stars) });
@@ -663,7 +676,7 @@
   function trendCard(t, size) {
     return el("article", { class: `tcard ${size}` },
       el("button", { class: "tcard-open", type: "button", data: { action: "trend", id: t.id }, "aria-label": trendName(t) },
-        el("span", { class: "tmedia" }, videoEl(t.id, "result"),
+        el("span", { class: "tmedia" }, coverEl(media(t.id, "result.webp")), videoEl(t.id, "result"),
           t.seconds ? el("span", { class: "duration", icon: "play" }, T("sec", { n: t.seconds })) : null),
         el("h3", { text: trendName(t) }),
         el("span", { class: "tprice", text: priceFrom(t) })));
@@ -749,7 +762,8 @@
     const q = qualityOf(t), p = t.prices[q];
     // образец — готовый ролик автора тренда (TRENDS.md), со звуком: автоплей без звука (со звуком браузер не даст),
     // 🔊 — касанием
-    const pair = el("figure", { class: "sample" }, el("span", { class: "tmedia" }, videoEl(t.id, "result", { lazy: false }),
+    const pair = el("figure", { class: "sample" }, el("span", { class: "tmedia" },
+      coverEl(media(t.id, "result.webp"), false), videoEl(t.id, "result", { lazy: false }),
       el("button", { class: "sound-toggle", type: "button", data: { action: "sound" }, "aria-pressed": "false",
         "aria-label": T("soundOn"), icon: "mute" })));
     const qs = qualitiesOf(t);
@@ -948,7 +962,7 @@
     form.append("use_preset", usePreset ? "1" : "0");
     form.append("face_ok", "1");
     form.append("lang", LANG);
-    if (t) form.append("counts", ask.map(countOf).join(","));
+    if (t && t.ask) form.append("counts", ask.map(countOf).join(","));
     const wish = t ? photos.prompt.trim().slice(0, WISH_MAX) : "";
     if (wish) form.append("prompt", wish);            // 94C: пожелание клиента — недоверенный текст, проверяет бот
     let n = 0;
@@ -1032,7 +1046,7 @@
     if (v.dur !== null && v.dur < 4) return T("videoShort", { n: secs(v.dur) });
     return "";
   }
-  // оценка цены — те же формулы, что у бота (Genjutsu за секунду): только ru, со знаком «≈»; точную считает бот
+  // оценка цены — те же формулы, что у бота (за секунду видео): только ru, со знаком «≈»; точную считает бот
   const billSec = (d) => Math.max(P ? P.neuro.min_billable_sec : 4, Math.ceil(Math.min(d, 30) - 0.01));
   function styleEstimate(q) {
     const v = photos.video;
@@ -1041,20 +1055,14 @@
   }
   const stylePrice5 = () => LANG === "ru" && P ? neuroPrice(5, "480p", "replace") : null;
   // превью стиля в рамке .tmedia: ролик; нет ролика — обложка; нет ничего — заглушка-фон
+  // превью стиля: картинка из каталога — обложкой (в <video> её не кладём: на iPhone карточка оставалась пустой);
+  // превью-ролик — поверх обложки, проявляется, когда заиграл; нет ничего — фон
+  const isVideoUrl = (u) => /\.(mp4|webm|mov)(\?|$)/i.test(u);
   function styleMedia(s, lazy = true) {
-    if (s.preview) return el("span", { class: "tmedia" }, styleVideo(s, lazy));
-    if (s.thumb) return el("span", { class: "tmedia" }, el("img", { class: "tvideo", src: s.thumb, alt: "", loading: "lazy" }));
-    return el("span", { class: "tmedia no-media" });
-  }
-  function styleVideo(s, lazy = true) {
-    const v = el("video", { class: "tvideo", poster: s.thumb || null, preload: lazy ? "none" : "metadata",
-      playsinline: true, "webkit-playsinline": true, loop: true, disablepictureinpicture: true, controls: REDUCED,
-      "aria-label": styleName(s) });
-    v.muted = true;
-    v.defaultMuted = true;
-    v.dataset.src = s.preview;
-    v.dataset.auto = REDUCED ? "0" : "1";
-    return v;
+    const image = [s.thumb, s.preview].find((u) => u && !isVideoUrl(u)) || "";
+    const parts = [image ? coverEl(image, lazy) : null];
+    if (s.preview && isVideoUrl(s.preview)) parts.push(liveVideo(s.preview, styleName(s), { lazy }));
+    return el("span", { class: "tmedia" }, parts);
   }
   let styleQ = "480p";
   function stylePage(s) {
@@ -1519,10 +1527,18 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       x.innerHTML = icon("mute");
     });
   });
-  // ролика нет на своём адресе (новый тренд, ещё не скачан) — карточка без видео, с фоном
+  // своего файла нет (новый тренд или стиль, ещё не скачан): есть запасной адрес — берём его один раз, нет — убираем
+  // элемент; карточка остаётся с обложкой или фоном
   document.addEventListener("error", (e) => {
     const t = e.target;
-    if (t && (t.tagName === "VIDEO" || t.tagName === "IMG") && t.closest(".tmedia")) t.closest(".tmedia").classList.add("no-media");
+    if (!t || !(t.tagName === "VIDEO" || t.tagName === "IMG") || !t.closest(".tmedia")) return;
+    const next = t.dataset.fallback;
+    if (next) {
+      delete t.dataset.fallback;
+      if (t.tagName === "VIDEO") t.dataset.src = next;
+      t.src = next;
+      if (t.tagName === "VIDEO" && t.dataset.auto === "1") t.play().catch(() => {});
+    } else t.remove();
   }, true);
 
   let modalFrom = null;
@@ -1700,7 +1716,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     render();
     waitTelegram();
     // цены — со своего адреса (тот же prices.json, что у сайта); не загрузились — без чисел, цена в боте
-    fetch("../prices.json?v=5", { credentials: "same-origin" })
+    fetch("../prices.json?v=6", { credentials: "same-origin" })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
       .then((prices) => { P = prices; render(); }, () => {});
   }

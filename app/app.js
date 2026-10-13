@@ -1054,14 +1054,16 @@
     return neuroPrice(Math.min(v.dur, 30), q, "replace");
   }
   const stylePrice5 = () => LANG === "ru" && P ? neuroPrice(5, "480p", "replace") : null;
-  // превью стиля в рамке .tmedia: ролик; нет ролика — обложка; нет ничего — заглушка-фон
-  // превью стиля: картинка из каталога — обложкой (в <video> её не кладём: на iPhone карточка оставалась пустой);
-  // превью-ролик — поверх обложки, проявляется, когда заиграл; нет ничего — фон
+  // превью стиля: своё, как у трендов (95: tools/app_styles.py → styles/<uuid>/cover.webp и, если превью у Higgsfield —
+  // ролик, preview.mp4). Своего файла нет (новый стиль, ещё не скачан) — один раз адрес каталога (обработчик error);
+  // картинку в <video> не кладём (на iPhone карточка оставалась пустой); ролик — поверх обложки, когда заиграл
   const isVideoUrl = (u) => /\.(mp4|webm|mov)(\?|$)/i.test(u);
   function styleMedia(s, lazy = true) {
+    const own = `styles/${encodeURIComponent(s.id)}/`;
     const image = [s.thumb, s.preview].find((u) => u && !isVideoUrl(u)) || "";
-    const parts = [image ? coverEl(image, lazy) : null];
-    if (s.preview && isVideoUrl(s.preview)) parts.push(liveVideo(s.preview, styleName(s), { lazy }));
+    const parts = [coverEl(own + "cover.webp", lazy, image)];
+    if (s.preview && isVideoUrl(s.preview))
+      parts.push(liveVideo(own + "preview.mp4", styleName(s), { lazy, fallback: s.preview }));
     return el("span", { class: "tmedia" }, parts);
   }
   let styleQ = "480p";

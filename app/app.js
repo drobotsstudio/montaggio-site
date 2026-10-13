@@ -1,5 +1,6 @@
-/* Mini App Montaggio. Монтаж, Нейромонтаж и Пресет собираются здесь и оформляются в боте кодом заказа ?start=w1-….
-   Тренды и стили — каталог, заказ с фото или видео, оплата и результат — внутри приложения через сервер заказов.
+/* Mini App Montaggio. Монтаж и Нейромонтаж собираются здесь и оформляются в боте кодом заказа ?start=w1-….
+   Тренды, стили, AI-видео и свой персонаж (пресет) — заказ с фото, видео или описанием, оплата и результат — внутри
+   приложения через сервер заказов; «Картинки» — раздел бота (?start=w1-i).
    Приложение ничего не решает о деньгах: цену, номер заказа и ссылки оплаты показывает из ответа сервера, который
    получил их от бота. Сеть: свой адрес (prices.json, ролики трендов), https://api.montaggio.shop (initData — только в
    заголовке), превью стилей и скрипт Telegram. */
@@ -63,6 +64,13 @@
   }
   const presetPrice = () => priceOf(P.preset.usd, "preset");
   const sitesPrice = () => priceOf(P.sites.usd, "brag");
+  // 96C: AI-видео — как pricing.aivideo_quote бота и aivPrice в order.js (без кадра с надписью — его считает бот):
+  // токены = ширина × высота × (кадров в секунду × секунды + 1) / 1024, тариф — по качеству
+  function aivideoPrice(ratio, quality, seconds) {
+    const a = P.aivideo, [w, h] = a.dims[quality][ratio];
+    const tokens = Math.ceil(w * h * (seconds * a.fps + 1) / 1024);
+    return priceOf(tokens / 1e6 * (quality === "1080p" ? a.usd_per_m_tokens_1080 : a.usd_per_m_tokens), "aivideo");
+  }
   const rub = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " ₽";
 
   function priceFor(d) {
@@ -76,7 +84,7 @@
   let LANG = "ru";
   const TEXT = {
     ru: {
-      nav: ["Главная", "Тренды", "Изменить", "Персонаж", "Профиль"],
+      nav: ["Главная", "Тренды", "Изменить", "Создать", "Профиль"],
       homeTitle: ["Какое видео", "сделаем?"], homeSub: "Повторите тренд со своим лицом — или измените своё видео.",
       tileEdit: ["Изменить видео", "Смонтировать своё или изменить нейросетью"],
       tileTrend: ["Повторить тренд", "Ваше лицо в готовом трендовом ролике"],
@@ -132,9 +140,36 @@
       notFound: "Заказ не найден", retry: "Нет связи — пробуем ещё…", myOrders: "Ваши заказы",
       orderTrend: "Тренд «{t}»", orderPreset: "Пресет персонажа", orderOpen: "открыть",
       saveStarted: "Сохраняем…", shareFail: "Не получилось — ролик есть в чате бота.",
+      // 96C: вкладка «Создать» — AI-видео, картинки (в боте), свой персонаж
+      tileCreate: ["Создать", "Видео по описанию, картинки, свой персонаж"],
+      createTitle: "Создать", createSub: "Что сделаем с нуля?",
+      cAiv: ["🎥 AI-видео", "Опишите — нейросеть снимет видео"],
+      cImg: ["🖼 Картинки", "Создать по описанию, изменить фото, убрать фон"],
+      cChar: ["🧩 Свой персонаж", "Лист персонажа по вашим фото — для трендов и нейромонтажа"],
+      cImgNote: "Картинки открываются в чате бота.",
+      ownStory: ["✍️ Свой сюжет", "Опишите, что снять"],
+      aivTitle: "Создать видео", aivSub: "Нейросеть снимет видео по вашему описанию",
+      aivWhat: "Что снять?", aivPh: "Например: кот-космонавт идёт по Луне, мультфильм…",
+      aivPhotos: "Фото-образцы — по желанию, без людей", aivPhotosHint: "До 10 фото: товар, логотип, интерьер, место, стиль, рисунок.",
+      photoN: "Фото {n}", aivFormat: "Формат", more: "ещё…", aivLen: "Длина · {n} с", errTotalAiv: "Все фото вместе — не больше 100 МБ.",
+      ratio: { "9:16": "Вертикальное 9:16", "16:9": "Горизонтальное 16:9", "1:1": "Квадрат 1:1" },
+      aivName: "🎥 AI-видео", aivNote: "Точная цена — в боте перед оплатой.", aivBtn: "Создать",
+      aivBan: "Нельзя: фото с людьми, 18+, насилие, чужие бренды", rules: "Правила", aivNeed: "Опишите, что снять.",
+      rulesTitle: "Правила AI-видео",
+      rulesOk: "Можно: любые сцены, места, предметы, животные и стили; вымышленные люди по описанию; реклама своего товара или заведения. Знаменитость или герой фильма — будет персонаж «по мотивам»: тот же образ, но своё лицо и имя.",
+      rulesNo: ["Реальные люди на фото-образцах — фото с людьми и лицами.", "18+: обнажённость, сексуальные сцены и намёки на них.",
+        "Интимные, сексуализированные и унижающие сцены с детьми — без исключений.", "Насилие и жестокость: кровь, увечья, пытки, убийства.",
+        "Оружие, наркотики, алкоголь и табак как предмет рекламы или инструкции.", "Ненависть и экстремизм.",
+        "Обман: фейковые новости, поддельные документы, ложные обещания в рекламе.", "Чужие бренды: логотипы и товарные знаки чужих компаний.",
+        "Всё, что запрещено законом и правилами Telegram."],
+      rulesHow: "Перед ценой описание проверяется по этим правилам. Нарушение — объясним, что нельзя, и попросим переписать; платить ничего не нужно.",
+      checkingDesc: "Проверяем описание…", changeDesc: "Изменить описание", orderAiv: "AI-видео", createMore: "Создать ещё",
+      charTitle: "Свой персонаж", charSub: "Лист персонажа по вашим фото — нейросеть держит по нему лицо и фигуру в трендах и нейромонтаже.",
+      charPhotos: "Ваши фото · 1–3", charStyle: "Стиль", charBtn: "Сделать персонажа", charName: "🧩 Пресет персонажа",
+      styleNames: { real: "📷 Реализм", cartoon: "🎨 Мультфильм", anime: "🌸 Аниме", "3d": "🧸 3D" },
     },
     en: {
-      nav: ["Home", "Trends", "Edit", "Character", "Profile"],
+      nav: ["Home", "Trends", "Edit", "Create", "Profile"],
       homeTitle: ["What video", "shall we make?"], homeSub: "Repeat a trend with your face — or edit your own video.",
       tileEdit: ["Edit a video", "Cut your own or change it with AI"],
       tileTrend: ["Repeat a trend", "Your face in a ready trending video"],
@@ -190,9 +225,35 @@
       notFound: "Order not found", retry: "No connection — retrying…", myOrders: "Your orders",
       orderTrend: "Trend “{t}”", orderPreset: "Character preset", orderOpen: "open",
       saveStarted: "Saving…", shareFail: "Didn't work — the video is in the bot chat.",
+      tileCreate: ["Create", "Video from a description, images, your character"],
+      createTitle: "Create", createSub: "What shall we make from scratch?",
+      cAiv: ["🎥 AI video", "Describe it — the AI will shoot the video"],
+      cImg: ["🖼 Images", "Create from a description, edit a photo, remove the background"],
+      cChar: ["🧩 Your character", "A character sheet from your photos — for trends and AI video editing"],
+      cImgNote: "Images open in the bot chat.",
+      ownStory: ["✍️ Your own story", "Describe what to shoot"],
+      aivTitle: "Create a video", aivSub: "The AI will shoot a video from your description",
+      aivWhat: "What to shoot?", aivPh: "For example: a cat astronaut walking on the Moon, cartoon…",
+      aivPhotos: "Reference photos — optional, no people", aivPhotosHint: "Up to 10 photos: a product, logo, interior, place, style, drawing.",
+      photoN: "Photo {n}", aivFormat: "Format", more: "more…", aivLen: "Length · {n} s", errTotalAiv: "All photos together — no more than 100 MB.",
+      ratio: { "9:16": "Vertical 9:16", "16:9": "Horizontal 16:9", "1:1": "Square 1:1" },
+      aivName: "🎥 AI video", aivNote: "The exact price is shown in the bot before payment.", aivBtn: "Create",
+      aivBan: "Not allowed: photos with people, 18+, violence, other people's brands", rules: "Rules", aivNeed: "Describe what to shoot.",
+      rulesTitle: "AI video rules",
+      rulesOk: "Allowed: any scenes, places, objects, animals and styles; fictional people from a description; ads for your own product or venue. A celebrity or a movie hero becomes a character “inspired by” them: the same look, but their own face and name.",
+      rulesNo: ["Real people in reference photos — photos with people and faces.", "18+: nudity, sexual scenes and hints of them.",
+        "Intimate, sexualized or degrading scenes with children — no exceptions.", "Violence and cruelty: blood, injuries, torture, killing.",
+        "Weapons, drugs, alcohol and tobacco as the subject of ads or instructions.", "Hate and extremism.",
+        "Deception: fake news, forged documents, false promises in ads.", "Other people's brands: logos and trademarks of other companies.",
+        "Anything prohibited by law and Telegram rules."],
+      rulesHow: "Before the price, the description is checked against these rules. If something breaks them, we'll explain what's not allowed and ask you to rewrite it; you pay nothing.",
+      checkingDesc: "Checking the description…", changeDesc: "Edit the description", orderAiv: "AI video", createMore: "Create another",
+      charTitle: "Your character", charSub: "A character sheet from your photos — the AI keeps the face and figure from it in trends and AI video editing.",
+      charPhotos: "Your photos · 1–3", charStyle: "Style", charBtn: "Make the character", charName: "🧩 Character preset",
+      styleNames: { real: "📷 Realism", cartoon: "🎨 Cartoon", anime: "🌸 Anime", "3d": "🧸 3D" },
     },
     it: {
-      nav: ["Home", "Trend", "Modifica", "Personaggio", "Profilo"],
+      nav: ["Home", "Trend", "Modifica", "Crea", "Profilo"],
       homeTitle: ["Che video", "facciamo?"], homeSub: "Ripeti un trend con il tuo volto — o modifica il tuo video.",
       tileEdit: ["Modifica un video", "Monta il tuo o cambialo con l'IA"],
       tileTrend: ["Ripeti un trend", "Il tuo volto in un video di tendenza"],
@@ -248,6 +309,32 @@
       notFound: "Ordine non trovato", retry: "Nessuna connessione — riproviamo…", myOrders: "I tuoi ordini",
       orderTrend: "Trend «{t}»", orderPreset: "Preset del personaggio", orderOpen: "apri",
       saveStarted: "Salvataggio…", shareFail: "Non è riuscito — il video è nella chat del bot.",
+      tileCreate: ["Crea", "Video da una descrizione, immagini, il tuo personaggio"],
+      createTitle: "Crea", createSub: "Cosa creiamo da zero?",
+      cAiv: ["🎥 Video AI", "Descrivilo — l'IA girerà il video"],
+      cImg: ["🖼 Immagini", "Crea da una descrizione, modifica una foto, rimuovi lo sfondo"],
+      cChar: ["🧩 Il tuo personaggio", "Scheda del personaggio dalle tue foto — per trend e montaggio IA"],
+      cImgNote: "Le immagini si aprono nella chat del bot.",
+      ownStory: ["✍️ La tua storia", "Descrivi cosa girare"],
+      aivTitle: "Crea un video", aivSub: "L'IA girerà un video dalla tua descrizione",
+      aivWhat: "Cosa girare?", aivPh: "Per esempio: un gatto astronauta cammina sulla Luna, cartone animato…",
+      aivPhotos: "Foto di riferimento — facoltative, senza persone", aivPhotosHint: "Fino a 10 foto: un prodotto, un logo, un interno, un luogo, uno stile, un disegno.",
+      photoN: "Foto {n}", aivFormat: "Formato", more: "altro…", aivLen: "Durata · {n} s", errTotalAiv: "Tutte le foto insieme — non più di 100 MB.",
+      ratio: { "9:16": "Verticale 9:16", "16:9": "Orizzontale 16:9", "1:1": "Quadrato 1:1" },
+      aivName: "🎥 Video AI", aivNote: "Il prezzo esatto — nel bot prima del pagamento.", aivBtn: "Crea",
+      aivBan: "Non ammesso: foto con persone, 18+, violenza, marchi altrui", rules: "Regole", aivNeed: "Descrivi cosa girare.",
+      rulesTitle: "Regole del video AI",
+      rulesOk: "Ammesso: qualsiasi scena, luogo, oggetto, animale e stile; persone immaginarie dalla descrizione; pubblicità del tuo prodotto o locale. Una celebrità o un eroe di film diventa un personaggio «ispirato a»: lo stesso look, ma volto e nome propri.",
+      rulesNo: ["Persone reali nelle foto di riferimento — foto con persone e volti.", "18+: nudità, scene sessuali e allusioni.",
+        "Scene intime, sessualizzate o umilianti con bambini — senza eccezioni.", "Violenza e crudeltà: sangue, ferite, torture, omicidi.",
+        "Armi, droghe, alcol e tabacco come oggetto di pubblicità o istruzioni.", "Odio ed estremismo.",
+        "Inganni: notizie false, documenti falsi, false promesse nella pubblicità.", "Marchi altrui: loghi e marchi di altre aziende.",
+        "Tutto ciò che è vietato dalla legge e dalle regole di Telegram."],
+      rulesHow: "Prima del prezzo la descrizione viene controllata secondo queste regole. Se qualcosa non va, ti spieghiamo cosa non si può e ti chiediamo di riscrivere; non paghi nulla.",
+      checkingDesc: "Controlliamo la descrizione…", changeDesc: "Modifica la descrizione", orderAiv: "Video AI", createMore: "Creane un altro",
+      charTitle: "Il tuo personaggio", charSub: "Una scheda del personaggio dalle tue foto — l'IA mantiene volto e figura nei trend e nel montaggio IA.",
+      charPhotos: "Le tue foto · 1–3", charStyle: "Stile", charBtn: "Crea il personaggio", charName: "🧩 Preset del personaggio",
+      styleNames: { real: "📷 Realismo", cartoon: "🎨 Cartone", anime: "🌸 Anime", "3d": "🧸 3D" },
     },
   };
   const T = (key, vars) => {
@@ -278,6 +365,7 @@
     plus: "M12 5v14M5 12h14",
     x: "m6 6 12 12M6 18 18 6",
     play: "m8 5 12 7-12 7Z",
+    image: "M4 5h16v14H4Zm0 11 5-5 4 4 3-3 4 4M15 9h.01",
     video: "M3 5h13v14H3Zm13 5 5-4v12l-5-4",
     scissors: "M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12",
     check: "m5 12 4 4L19 6",
@@ -347,12 +435,17 @@
   // режимы нейромонтажа в архиве — на экране не показываются, код, цена и тексты на месте; вернуть — убрать из списка.
   // motion — в архиве с 13.10 (вместо него — раздел «Стили»)
   const HIDDEN_MODES = ["motion"];
-  const neuroModeOk = (m) => !!NEURO_CODES[m] && !HIDDEN_MODES.includes(m);
+  const neuroModeOk = (m) => Object.prototype.hasOwnProperty.call(NEURO_CODES, m) && !HIDDEN_MODES.includes(m);
+  // 96C: AI-видео из приложения (заказ через сервер). Отказались от сервера (SERVER_ORDERS=off у бота) — false: плитка
+  // во вкладке «Создать», «Свой сюжет» в трендах и экран #/create/video не показываются; в боте «🎥 AI-видео» как было
+  const AIVIDEO_ON = true;
   const PRESET_STYLES = [["real", "📷 Реализм"], ["cartoon", "🎨 Мультфильм"], ["anime", "🌸 Аниме"], ["3d", "🧸 3D"]];
   const QUALITIES = ["480p", "720p", "1080p"];
   const MONTAGE_SECONDS = [15, 30, 45, 60, 90, 120, 180];
   const SHORT_SECONDS = [4, 5, 6, 8, 10, 12, 15, 20, 30];
   const KIND_NAMES = { montage: "🎬 Монтаж", neuro: "🪄 Нейромонтаж", preset: "🧩 Пресет персонажа" };
+  // ключ — только свой, не унаследованный (constructor, toString…): значения из хранилища и data-атрибутов чужие
+  const has = (o, k) => typeof k === "string" && Object.prototype.hasOwnProperty.call(o, k);
 
   function newDraft(kind) {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -363,7 +456,7 @@
   // черновик из хранилища — только известные значения (хранилище мог испортить кто угодно на этом устройстве);
   // черновики старых трендов партнёра (kind aivideo) больше не открываются — отбрасываются
   function cleanDraft(d) {
-    if (!d || typeof d !== "object" || !KIND_NAMES[d.kind]) return null;
+    if (!d || typeof d !== "object" || !has(KIND_NAMES, d.kind)) return null;
     const base = newDraft(d.kind);
     base.id = typeof d.id === "string" && /^[a-z0-9]{1,24}$/.test(d.id) ? d.id : base.id;
     base.updated = Number(d.updated) || Date.now();
@@ -375,15 +468,15 @@
       if (neuroModeOk(d.mode)) base.mode = d.mode;            // архивный режим — «Перерисовка»
       if (SHORT_SECONDS.includes(d.sec)) base.sec = d.sec;
       if (QUALITIES.includes(d.q)) base.q = d.q;
-    } else if (STYLE_CODES[d.style]) base.style = d.style;
+    } else if (has(STYLE_CODES, d.style)) base.style = d.style;
     return base;
   }
-  // свой заказ тренда/пресета (91): только номер, вид и тренд — чтобы вернуться к экрану заказа; 24 ч
+  // свой заказ тренда/пресета/стиля/AI-видео (91, 92, 96): только номер, вид и тренд — чтобы вернуться к экрану заказа; 24 ч
   const ORDER_ID = /^[0-9a-f]{32}$/;
   const TREND_ID = /^[A-Za-z0-9_-]{1,64}$/;
   const ORDER_TTL = 24 * 3600 * 1000;
   function cleanOrder(o) {
-    if (!o || typeof o !== "object" || typeof o.id !== "string" || !ORDER_ID.test(o.id) || !["trend", "preset", "style"].includes(o.kind))
+    if (!o || typeof o !== "object" || typeof o.id !== "string" || !ORDER_ID.test(o.id) || !["trend", "preset", "style", "aivideo"].includes(o.kind))
       return null;
     const at = Number(o.at);
     if (!(at > Date.now() - ORDER_TTL && at <= Date.now() + 60000)) return null;
@@ -396,17 +489,18 @@
 
   // --- хранилище этого устройства ---
   const storageKey = "montaggio-app-v1";
-  let drafts = [], myOrders = [], trendsExpanded = true;
+  let drafts = [], myOrders = [], trendsExpanded = true, storedAiv = null;
   try {
     const s = JSON.parse(localStorage.getItem(storageKey) || "{}");
     drafts = (Array.isArray(s.drafts) ? s.drafts : []).map(cleanDraft).filter(Boolean).slice(0, 8);
     myOrders = (Array.isArray(s.orders) ? s.orders : []).map(cleanOrder).filter(Boolean).slice(0, 5);
     trendsExpanded = s.trendsExpanded !== false;
+    storedAiv = s.aiv;                // черновик AI-видео (96C) — разбирает restoreAiv
   } catch {}
   let storageWarned = false;
   function persist() {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ drafts, orders: myOrders, trendsExpanded }));
+      localStorage.setItem(storageKey, JSON.stringify({ drafts, orders: myOrders, trendsExpanded, aiv: aivStored() }));
     } catch {
       if (!storageWarned) {
         storageWarned = true;
@@ -571,7 +665,8 @@
   let tgSettled = !START_HASH, memRoute = null;
   const route = () => memRoute !== null ? memRoute
     : location.hash.startsWith("#/") ? location.hash.slice(2) || "home" : "home";
-  const FLOW = { "edit/montage": "montage", "edit/neuro": "neuro", preset: "preset" };
+  // 96C: «Персонаж» (код w1-p в бота) заменён экраном «Свой персонаж» в приложении — #/preset (старые адреса тоже)
+  const FLOW = { "edit/montage": "montage", "edit/neuro": "neuro" };
   function nav(to) {
     closeModal();
     if (!tgSettled) {
@@ -597,7 +692,8 @@
     if (r.startsWith("trend/")) return "trends";
     if (r.startsWith("who/")) return "trend/" + r.slice(4);
     if (r.startsWith("style/")) return "styles";
-    if (r === "preset-new") return presetReturn ? "who/" + presetReturn : "trends";
+    if (r === "preset-new") return presetReturn ? "who/" + presetReturn : "create";
+    if (r === "preset" || r.startsWith("create/")) return "create";
     if (r.startsWith("order/")) return "trends";
     if (r.startsWith("edit/")) return "edit";
     if (r === "drafts") return "profile";
@@ -608,8 +704,14 @@
     nav(parentOf(route()));
   }
   function openDraft(d) {
+    if (d.kind === "preset") {       // старый черновик пресета (код в бота) — теперь экран «Свой персонаж» с его стилем
+      presetStyle = d.style;
+      presetReturn = "";
+      dropDraft(d.id);
+      return void nav("preset");
+    }
     draft = d;
-    nav(d.kind === "preset" ? "preset" : "edit/" + d.kind);
+    nav("edit/" + d.kind);
   }
 
   // --- куски экранов ---
@@ -621,10 +723,12 @@
     const r = route();
     const labels = T("nav");
     $("#nav").innerHTML = [
-      ["home", "home"], ["trends", "spark"], ["edit", "sliders"], ["preset", "layers"], ["profile", "user"],
+      ["home", "home"], ["trends", "spark"], ["edit", "sliders"], ["create", "plus"], ["profile", "user"],
     ].map(([to, ic], i) => {
-      const on = r === to || r.startsWith(to + "/") || (to === "trends" && /^(trend|who|order)\/|^preset-new$/.test(r))
-        || (to === "profile" && r === "drafts") || (to === "edit" && /^styles$|^style\//.test(r));
+      const fromTrend = r === "preset-new" && !!presetReturn;      // «Сделать пресет» из тренда — это ещё тренды
+      const on = r === to || r.startsWith(to + "/") || (to === "trends" && (/^(trend|who|order)\//.test(r) || fromTrend))
+        || (to === "profile" && r === "drafts") || (to === "edit" && /^styles$|^style\//.test(r))
+        || (to === "create" && (r === "preset" || (r === "preset-new" && !fromTrend)));
       return `<a href="#/${to}" class="nav-item ${on ? "current" : ""}" ${r === to ? 'aria-current="page"' : ""}>${icon(ic)}<span>${esc(labels[i])}</span></a>`;
     }).join("");
   }
@@ -683,14 +787,29 @@
   }
   function trendsState(compact) {
     if (catalogState === "ok") return null;
-    if (catalogState === "down")
-      return el("div", { class: "trends-down" + (compact ? " compact" : "") },
+    if (catalogState === "down")       // трендов нет (пусто или сервер недоступен) — «Свой сюжет» всё равно есть (96C)
+      return el("div", {}, el("div", { class: "trends-down" + (compact ? " compact" : "") },
         el("div", {}, el("h3", { text: T("downTitle") }), el("p", { text: T("downText") })),
-        btn(T("openBot"), "open-bot", "secondary small", {}, "send"));
+        btn(T("openBot"), "open-bot", "secondary small", {}, "send")),
+      AIVIDEO_ON ? ownStoryButton() : null);
     return el("div", { class: "trends-loading", role: "status" }, el("span", { class: "spinner" }), T("loading"));
   }
   function carousel(size) {
-    return el("div", { class: `tcarousel ${size}`, "aria-label": T("trends") }, catalog.map((t) => trendCard(t, size)));
+    return el("div", { class: `tcarousel ${size}`, "aria-label": T("trends") }, catalog.map((t) => trendCard(t, size)),
+      AIVIDEO_ON ? ownStoryCard(size) : null);
+  }
+  const ownStoryButton = () => {
+    const [title, sub] = T("ownStory");
+    return btn(`${title} — ${sub.charAt(0).toLowerCase()}${sub.slice(1)}`, "nav", "secondary full own-story-button", { to: "create/video" });
+  };
+  // 96C: в конце карусели трендов — «✍️ Свой сюжет» → экран «Создать видео» (AI-видео по описанию)
+  function ownStoryCard(size) {
+    const [title, sub] = T("ownStory");
+    return el("article", { class: `tcard ${size} own-story` },
+      el("button", { class: "tcard-open", type: "button", data: { action: "nav", to: "create/video" }, "aria-label": `${title}. ${sub}` },
+        el("span", { class: "tmedia" }, el("span", { class: "own-story-body" }, el("span", { class: "own-story-mark", icon: "plus" }),
+          el("small", { text: sub }))),
+        el("h3", { text: title })));
   }
   function homeTrends() {
     const state = trendsState(true);
@@ -711,9 +830,10 @@
         const t = trendById(o.trend);
         const st = o.kind === "style" ? styleById(o.trend) : null;
         const name = o.kind === "preset" ? T("orderPreset") : o.kind === "style" ? T("orderStyle", { t: st ? styleName(st) : "…" })
-          : T("orderTrend", { t: t ? trendName(t) : "…" });
+          : o.kind === "aivideo" ? T("orderAiv") : T("orderTrend", { t: t ? trendName(t) : "…" });
+        const ic = { preset: "user", style: "layers", aivideo: "video" }[o.kind] || "spark";
         return el("button", { class: "continue-card", type: "button", data: { action: "nav", to: "order/" + o.id } },
-          el("span", { class: "continue-icon", icon: o.kind === "preset" ? "user" : o.kind === "style" ? "layers" : "spark" }),
+          el("span", { class: "continue-icon", icon: ic }),
           el("span", {}, el("strong", { text: name }), el("small", { text: "№ " + o.id.slice(0, 6) + " · " + T("orderOpen") })),
           el("span", { icon: "arrow", class: "continue-arrow" }));
       })));
@@ -782,6 +902,8 @@
   }
   let presetReturn = "";              // тренд, к которому вернуться после пресета
   let presetPick = "";                // вернулись к тренду с готовым пресетом — сразу «Мой пресет»
+  let presetStyle = "real";           // 96C: стиль листа на экране «Свой персонаж» (preset_style)
+  const charPath = () => route() === "preset";      // «Свой персонаж» из вкладки «Создать», не «Сделать пресет» из тренда
 
   // --- что просим у клиента (91, TRENDS.md): блоки ask из каталога, по порядку героев в промпте тренда ---
   const KINDS = new Set(["face", "body", "product", "car", "item"]);
@@ -809,7 +931,7 @@
   }
   const one = (text) => ({ [LANG]: text });
   function askFor(t) {
-    if (!t) return [{ key: "P", kind: "face", preset: false, min: 1, max: 3, labels: one(T("presetPhotos")),
+    if (!t) return [{ key: "P", kind: "face", preset: false, min: 1, max: 3, labels: one(T(charPath() ? "charPhotos" : "presetPhotos")),
       hint: one(T("presetHint")), group: null }];
     return t.ask || [{ key: "P1", kind: "face", preset: true, min: 1, max: 8, labels: one(T("yourFace")),
       hint: one(T("photosHint")), group: null }];
@@ -866,6 +988,15 @@
     if (box) box.textContent = text;
     else toast(text);
   }
+  // превью фото: numbered — подпись «Фото 1, 2…» (96C: AI-видео и «Свой персонаж»)
+  function thumbEl(p, i, action, numbered) {
+    return el("div", { class: "photo-thumb" },
+      p.url ? el("img", { src: p.url, alt: "" }) : el("span", { class: "photo-noprev", icon: "camera" }),
+      numbered ? el("span", { class: "photo-num", text: T("photoN", { n: i + 1 }) }) : null,
+      el("button", { class: "photo-remove", type: "button", data: { action, key: p.key },
+        "aria-label": `${T("removePhoto")} ${i + 1}`, icon: "x" }));
+  }
+  const addTile = (id) => el("label", { class: "photo-add", for: id }, el("span", { icon: "plus" }), el("small", { text: T("addPhoto") }));
   function blockEl(b, t) {
     const preset = !!t && b.preset, list = listOf(b.key), byPreset = usesPreset(b);
     const id = "photo-input-" + b.key;
@@ -885,13 +1016,8 @@
     else
       parts.push(el("input", { type: "file", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif",
         multiple: b.max > 1, class: "visually-hidden", id, onchange: (e) => { addPhotos(b, [...e.target.files]); e.target.value = ""; } }),
-      el("div", { class: "photo-grid" },
-        list.map((p, i) => el("div", { class: "photo-thumb" },
-          p.url ? el("img", { src: p.url, alt: "" }) : el("span", { class: "photo-noprev", icon: "camera" }),
-          el("button", { class: "photo-remove", type: "button", data: { action: "photo-remove", key: p.key },
-            "aria-label": `${T("removePhoto")} ${i + 1}`, icon: "x" }))),
-        list.length < b.max ? el("label", { class: "photo-add", for: id }, el("span", { icon: "plus" }),
-          el("small", { text: T("addPhoto") })) : null));
+      el("div", { class: "photo-grid" }, list.map((p, i) => thumbEl(p, i, "photo-remove", !t && charPath())),
+        list.length < b.max ? addTile(id) : null));
     return el("section", { class: "ask-block" + (b.group ? " item" : "") }, parts);
   }
   // 94C: «Ваши пожелания» к тренду — необязательно, ≤ 300 знаков; текст уходит полем prompt, бот проверяет его после
@@ -927,11 +1053,20 @@
       group = el("details", { class: "ask-group", open, ontoggle: (e) => { photos.groupOpen = e.target.open; } },
         el("summary", { text: loc(grouped[0].group) }), grouped.map((b) => blockEl(b, t)));
     }
-    const send = btn(t ? T("next") : T("send"), "send-photos", "primary full", {}, t ? "arrow" : "send");
+    // 96C: «Свой персонаж» из вкладки «Создать» (#/preset) — тот же заказ пресета, плюс стиль листа и цена
+    const char = !t && charPath(), price = char && LANG === "ru" && P ? presetPrice() : null;
+    const send = btn(t ? T("next") : char ? T("charBtn") + (price ? ` · ≈ ${rub(price)}` : "") : T("send"), "send-photos",
+      "primary full", {}, t ? "arrow" : char ? "spark" : "send");
     send.id = "send-photos";
+    const charParts = char ? [
+      el("div", { class: "field" }, el("span", { class: "field-label", text: T("charStyle") }),
+        el("div", { class: "choice-row" }, PRESET_STYLES.map(([v]) => el("button", { class: "choice" + (v === presetStyle ? " selected" : ""),
+          type: "button", "aria-pressed": String(v === presetStyle), data: { action: "preset-style", value: v } }, T("styleNames")[v])))),
+      price ? el("div", { class: "price-card" }, el("span", { text: T("charName") }), el("strong", { text: "≈ " + rub(price) }),
+        el("small", { text: T("aivNote") })) : null] : [];
     const node = el("div", { class: "photo-page" },
-      pageTopEl(t ? T("askTitle") : T("presetTitle"), t ? summaryLine(t) : T("presetSub")),
-      plain.map((b) => blockEl(b, t)), group, t ? wishBlock() : null,
+      pageTopEl(t ? T("askTitle") : char ? T("charTitle") : T("presetTitle"), t ? summaryLine(t) : char ? T("charSub") : T("presetSub")),
+      plain.map((b) => blockEl(b, t)), group, t ? wishBlock() : null, charParts,
       el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
       el("div", { id: "flow-error", class: "form-error", role: "alert" }),
       el("div", { class: "workflow-actions" }, send));
@@ -943,6 +1078,13 @@
     const b = $("#send-photos"), r = route();
     if (!b) return;
     if (r.startsWith("style/")) return void (b.disabled = sending || !!styleMissing());
+    if (r === "create/video") {
+      // идёт заливка — фото не добавить (в неё они уже не попадут)
+      const input = $("#aiv-photo-input"), add = document.querySelector(".aiv-page .photo-add");
+      if (input) input.disabled = sending;
+      if (add) add.setAttribute("aria-disabled", String(sending));
+      return void (b.disabled = sending || !aiv.desc.trim());
+    }
     const t = r.startsWith("who/") ? trendById(r.slice(4)) : null;
     b.disabled = sending || !!missing(askFor(t));
   }
@@ -962,12 +1104,15 @@
     form.append("use_preset", usePreset ? "1" : "0");
     form.append("face_ok", "1");
     form.append("lang", LANG);
+    // 96C: стиль листа — только с экрана «Свой персонаж» и не «Реализм» (нет поля — реализм, как раньше)
+    if (!t && charPath() && has(STYLE_CODES, presetStyle) && presetStyle !== "real") form.append("preset_style", presetStyle);
     if (t && t.ask) form.append("counts", ask.map(countOf).join(","));
     const wish = t ? photos.prompt.trim().slice(0, WISH_MAX) : "";
     if (wish) form.append("prompt", wish);            // 94C: пожелание клиента — недоверенный текст, проверяет бот
     let n = 0;
     for (const b of ask) if (!usesPreset(b)) listOf(b.key).forEach((p) => form.append("photo[]", p.file, `photo${++n}`));
-    await submit(form, n > 0, { kind: t ? "trend" : "preset", trend: t ? t.id : presetReturn, preset: usePreset ? 1 : 0 });
+    await submit(form, n > 0, { kind: t ? "trend" : "preset", trend: t ? t.id : charPath() ? "" : presetReturn,
+      preset: usePreset ? 1 : 0 });
   }
   // отправка заказа с полосой загрузки; удалось — фото и видео стираются из памяти, экран заказа
   async function submit(form, files, meta) {
@@ -986,6 +1131,7 @@
       rememberOrder({ id, ...meta, at: Date.now() });
       sending = false;
       nav("order/" + id);
+      return id;
     } catch (e) {
       sending = false;
       if (bar) bar.hidden = true;
@@ -1139,6 +1285,193 @@
     await submit(form, true, { kind: "style", trend: s.id, preset: 0 });
   }
 
+  // --- AI-видео (96C): описание 1–4000, 0–10 фото-образцов без людей, формат, длина 4–30 с, качество → сервер
+  // (type=aivideo) → проверка описания и цена — бот. Черновик: описание, формат, длина, качество и номер отправленного
+  // заказа — в localStorage (Telegram перезагрузил окно — текст на месте), фото — только в памяти страницы. После отказа
+  // (rejected) всё на месте — «Изменить описание»; после оплаты или отмены этого заказа — стирается ---
+  const AIV_RATIOS = ["9:16", "16:9", "1:1", "4:3", "3:4", "21:9"];
+  const AIV_MAIN = 3;                   // сразу видны три формата, остальные — под «ещё…»
+  const AIV_DESC_MAX = 4000, AIV_PHOTOS = 10, AIV_MIN = 4, AIV_MAX = 30;
+  const freshAiv = () => ({ desc: "", ratio: "9:16", sec: 10, q: "720p", more: false, photos: [], order: "", rev: 0 });
+  // черновик из хранилища — только известные значения
+  function restoreAiv(o) {
+    const a = freshAiv();
+    if (!o || typeof o !== "object") return a;
+    if (typeof o.desc === "string") a.desc = o.desc.slice(0, AIV_DESC_MAX);
+    if (AIV_RATIOS.includes(o.ratio)) a.ratio = o.ratio;
+    if (Number.isInteger(o.sec) && o.sec >= AIV_MIN && o.sec <= AIV_MAX) a.sec = o.sec;
+    if (QUALITIES.includes(o.q)) a.q = o.q;
+    if (typeof o.order === "string" && ORDER_ID.test(o.order)) a.order = o.order;
+    const at = Number(o.at);
+    // срок: отправленный — как номер заказа (24 ч), неотправленный — 7 дней с последней правки; старше или без
+    // времени — черновика нет
+    if (!(at > Date.now() - (a.order ? ORDER_TTL : AIV_DRAFT_TTL) && at <= Date.now() + 60000)) return freshAiv();
+    a.at = at;
+    a.more = AIV_RATIOS.indexOf(a.ratio) >= AIV_MAIN;
+    return a;
+  }
+  const AIV_DRAFT_TTL = 7 * 24 * 3600 * 1000;
+  let aiv = restoreAiv(storedAiv);
+  const aivStored = () => aiv.desc.trim()
+    ? { desc: aiv.desc.slice(0, AIV_DESC_MAX), ratio: aiv.ratio, sec: aiv.sec, q: aiv.q, order: aiv.order, at: aiv.at || Date.now() }
+    : undefined;
+  let aivSaveTimer = 0;
+  // клиент правит черновик: он больше не тот, что ушёл заказом, — оплата прошлого заказа его не сотрёт
+  function aivTouched(save = true) {
+    aiv.order = "";
+    aiv.rev++;                        // правка во время заливки — тоже новый черновик
+    aiv.at = Date.now();
+    clearTimeout(aivSaveTimer);
+    if (save) persist();
+    else aivSaveTimer = setTimeout(flushAiv, 400);  // набор текста — сохраняем, когда пауза
+  }
+  function flushAiv() {
+    clearTimeout(aivSaveTimer);
+    aivSaveTimer = 0;
+    persist();
+  }
+  function clearAiv() {
+    aiv.photos.forEach((p) => p.url && URL.revokeObjectURL(p.url));
+    aiv = freshAiv();
+    clearTimeout(aivSaveTimer);
+    aivSaveTimer = 0;
+    persist();
+  }
+  // окно сворачивают или закрывают — недописанное описание сохраняем сразу, не дожидаясь паузы
+  document.addEventListener("visibilitychange", () => { if (document.hidden && aivSaveTimer) flushAiv(); });
+  window.addEventListener("pagehide", () => { if (aivSaveTimer) flushAiv(); });
+  // при запуске: заказ черновика уже не наш (номер забыт — старше 24 ч или не найден) или ушёл дальше «к оплате» —
+  // черновик не нужен; истёкший — restoreAiv уже отбросил, здесь стираем и в хранилище
+  {
+    const mine = aiv.order && myOrders.find((o) => o.id === aiv.order);
+    if (aiv.order && (!mine || ["paid", "working", "done", "review", "cancelled"].includes(mine.st))) clearAiv();
+    else if (storedAiv && !aiv.desc) persist();
+  }
+  // длина описания для счётчика: перенос строки — один знак (в поле переносы всегда \n)
+  const descLen = (s) => s.replace(/\r\n/g, "\n").length;
+  // описание к отправке — как его примет сервер (API.md 96A: без управляющих и невидимых символов, иначе bad_desc):
+  // невидимые (часто приходят со вставкой текста) — убрать, U+2028/2029 — перенос строки; U+200D в эмодзи — можно
+  const cleanDesc = (s) => s.replace(/\r\n?/g, "\n").replace(/[\p{Zl}\p{Zp}]/gu, "\n")
+    .replace(/[\p{Cf}\p{Cs}]|[^\P{Cc}\n\t]/gu, (c) => c.codePointAt(0) === 0x200d ? c : "").trim();
+  const AIV_BYTES = 100 * MB;           // фото-образцы вместе (API.md 96A)
+  function aivAddPhotos(files) {
+    if (sending) return;              // идёт заливка — новое фото в неё уже не попадёт
+    aivTouched();
+    const err = [];
+    for (const f of files) {
+      const byName = !f.type && /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name || "");
+      if (!PHOTO_TYPES.test(f.type) && !byName) { err.push(T("errType", { name: f.name || "?" })); continue; }
+      if (f.size > 10 * MB) { err.push(T("errSize", { name: f.name || "?" })); continue; }
+      if (aiv.photos.length >= AIV_PHOTOS) { err.push(T("errCount", { n: AIV_PHOTOS })); break; }
+      if (aiv.photos.reduce((s, p) => s + p.file.size, 0) + f.size > AIV_BYTES) { err.push(T("errTotalAiv")); break; }
+      const preview = /^image\/(jpeg|png|webp)$/.test(f.type);
+      aiv.photos.push({ file: f, url: preview ? URL.createObjectURL(f) : "", key: Math.random().toString(36).slice(2) });
+    }
+    render();
+    if (err.length) showError(err.join(" "));
+  }
+  const aivEstimate = (q = aiv.q) => LANG === "ru" && P ? aivideoPrice(aiv.ratio, q, aiv.sec) : null;
+  const aivSendLabel = () => { const p = aivEstimate(); return T("aivBtn") + (p ? ` · ≈ ${rub(p)}` : ""); };
+  // длина ползунком: цены и подписи — на месте, без перерисовки экрана (ползунок не теряет палец)
+  function aivRefresh() {
+    const len = $("#aiv-len");
+    if (len) len.textContent = T("aivLen", { n: aiv.sec });
+    document.querySelectorAll(".aiv-q .q-choice").forEach((b) => {
+      const p = aivEstimate(b.dataset.value), s = b.querySelector("small");
+      if (s && p) s.textContent = "≈ " + rub(p);
+    });
+    const price = $("#aiv-price"), p = aivEstimate();
+    if (price && p) price.textContent = "≈ " + rub(p);
+    const send = $("#send-photos");
+    if (send && !sending) send.lastChild.textContent = aivSendLabel();
+  }
+  function aivPage() {
+    const area = el("textarea", { id: "aiv-desc", maxlength: String(AIV_DESC_MAX), rows: "5", placeholder: T("aivPh"),
+      "aria-labelledby": "aiv-what", oninput: (e) => {
+        aiv.desc = e.target.value;
+        aivTouched(false);
+        const c = $("#aiv-count");
+        if (c) c.textContent = `${descLen(aiv.desc)} / ${AIV_DESC_MAX}`;
+        updateSend();
+      } });
+    area.value = aiv.desc;
+    const input = "aiv-photo-input";
+    const ratios = aiv.more || AIV_RATIOS.indexOf(aiv.ratio) >= AIV_MAIN ? AIV_RATIOS : AIV_RATIOS.slice(0, AIV_MAIN);
+    const chip = (r) => el("button", { class: "choice" + (r === aiv.ratio ? " selected" : ""), type: "button",
+      "aria-pressed": String(r === aiv.ratio), data: { action: "aiv-ratio", value: r } }, T("ratio")[r] || r);
+    const range = el("input", { type: "range", class: "aiv-range", id: "aiv-sec", min: String(AIV_MIN), max: String(AIV_MAX),
+      step: "1", "aria-labelledby": "aiv-len", oninput: (e) => {
+        const n = Number(e.target.value);
+        if (Number.isInteger(n) && n >= AIV_MIN && n <= AIV_MAX) { aiv.sec = n; aivTouched(false); aivRefresh(); }
+      } });
+    range.value = String(aiv.sec);
+    const est = aivEstimate();
+    const send = btn(aivSendLabel(), "send-aiv", "primary full", {}, "spark");
+    send.id = "send-photos";
+    queueMicrotask(updateSend);
+    return el("div", { class: "photo-page aiv-page" }, pageTopEl(T("aivTitle"), T("aivSub")),
+      el("section", { class: "ask-block" },
+        el("div", { class: "ask-head" }, el("h3", { id: "aiv-what", text: T("aivWhat") }),
+          el("span", { class: "ask-count", id: "aiv-count", text: `${descLen(aiv.desc)} / ${AIV_DESC_MAX}` })), area),
+      el("section", { class: "ask-block" },
+        el("div", { class: "ask-head" }, el("h3", { text: T("aivPhotos") }),
+          el("span", { class: "ask-count", text: `${aiv.photos.length} / ${AIV_PHOTOS}` })),
+        el("p", { class: "photo-hint", text: T("aivPhotosHint") }),
+        el("input", { type: "file", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", multiple: true,
+          class: "visually-hidden", id: input, onchange: (e) => { aivAddPhotos([...e.target.files]); e.target.value = ""; } }),
+        el("div", { class: "photo-grid" }, aiv.photos.map((p, i) => thumbEl(p, i, "aiv-photo-remove", true)),
+          aiv.photos.length < AIV_PHOTOS ? addTile(input) : null)),
+      el("div", { class: "field" }, el("span", { class: "field-label", text: T("aivFormat") }),
+        el("div", { class: "choice-row" }, ratios.map(chip), ratios.length < AIV_RATIOS.length
+          ? el("button", { class: "choice", type: "button", data: { action: "aiv-more" } }, T("more")) : null)),
+      el("div", { class: "field" }, el("span", { class: "field-label", id: "aiv-len", text: T("aivLen", { n: aiv.sec }) }), range),
+      el("div", { class: "field" }, el("span", { class: "field-label", text: T("quality") }),
+        el("div", { class: "q-row aiv-q" }, QUALITIES.map((k) => {
+          const p = aivEstimate(k);
+          return el("button", { class: "q-choice" + (k === aiv.q ? " selected" : ""), type: "button",
+            "aria-pressed": String(k === aiv.q), data: { action: "aiv-q", value: k } },
+          el("strong", { text: T("q")[k] }), el("small", { text: p ? "≈ " + rub(p) : k }));
+        }))),
+      est ? el("div", { class: "price-card" }, el("span", { text: T("aivName") }), el("strong", { id: "aiv-price", text: "≈ " + rub(est) }),
+        el("small", { text: T("aivNote") })) : el("div", { class: "quote-hint", icon: "info" }, T("aivNote")),
+      el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
+      el("div", { id: "flow-error", class: "form-error", role: "alert" }),
+      el("div", { class: "workflow-actions" }, send),
+      el("p", { class: "aiv-ban" }, T("aivBan") + " · ",
+        el("button", { class: "text-button aiv-rules", type: "button", data: { action: "aiv-rules" } }, T("rules"))));
+  }
+  // заказ AI-видео: type (первым — сервер проверяет фото прямо во время заливки), desc, ratio, seconds, quality, lang,
+  // photo[] (API.md 96A). Перенос строки браузер шлёт как \r\n — сервер считает его одним знаком
+  async function sendAiv() {
+    if (sending) return;
+    const desc = cleanDesc(aiv.desc);
+    if (!desc) return showError(T("aivNeed"));
+    if (!AIV_RATIOS.includes(aiv.ratio) || !QUALITIES.includes(aiv.q) || !(aiv.sec >= AIV_MIN && aiv.sec <= AIV_MAX)) return;
+    const form = new FormData();
+    form.append("type", "aivideo");
+    form.append("desc", desc);
+    form.append("ratio", aiv.ratio);
+    form.append("seconds", String(aiv.sec));
+    form.append("quality", aiv.q);
+    form.append("lang", LANG);
+    aiv.photos.forEach((p, i) => form.append("photo[]", p.file, `photo${i + 1}`));
+    const rev = aiv.rev;
+    const id = await submit(form, aiv.photos.length > 0, { kind: "aivideo", trend: "", preset: 0 });
+    if (id && aiv.rev === rev) {
+      aiv.order = id;                 // черновик — этот заказ: его оплата или отмена черновик сотрёт
+      aiv.at = Date.now();            // срок отправленного черновика — 24 ч, как у номера заказа
+      persist();
+    }
+  }
+  function aivRulesSheet() {
+    const items = T("rulesNo").map((s) => `<li>${esc(s)}</li>`).join("");
+    showModal(esc(T("rulesTitle")), `<p class="sheet-text">${esc(T("rulesOk"))}</p><ol class="sheet-rules">${items}</ol><p class="sheet-text">${esc(T("rulesHow"))}</p>`);
+  }
+  // заказ AI-видео оплачен, ушёл в работу или отменён — черновик (описание и фото) больше не нужен
+  function settleAiv(id, status) {
+    if (aiv.order === id && ["paid", "working", "done", "review", "cancelled"].includes(status)) clearAiv();
+  }
+
   // --- экран заказа (91): опрос раз в 2,5 с, пока окно видно; всё о деньгах — из ответа сервера ---
   const LIVE = new Set(["new", "picked", "quoted", "needs_consent", "paid", "working"]);
   const CANCELABLE = new Set(["new", "picked", "quoted", "needs_consent"]);
@@ -1185,6 +1518,7 @@
         view.data = data;
         const mine = myOrders.find((o) => o.id === id);
         if (mine && mine.st !== data.status) { mine.st = data.status; persist(); }
+        settleAiv(id, data.status);
       }
       if (before !== JSON.stringify(view.data) + view.offline) render();
       if (!data || LIVE.has(data.status)) schedulePoll();
@@ -1193,6 +1527,7 @@
       if (e.status === 404) {
         view.gone = true;
         forgetOrder(id);
+        if (aiv.order === id) clearAiv();            // заказа больше нет — и черновика, ушедшего им
         render();
         return;
       }
@@ -1230,8 +1565,8 @@
         el("div", { class: "status-actions" }, btn(T("openBot"), "open-bot", "primary full", {}, "send")));
     }
     const meta = myOrders.find((o) => o.id === id) || { kind: "", trend: "", preset: 0 };
-    const preset = meta.kind === "preset", style = meta.kind === "style";
-    const checking = preset ? T("checkingPreset") : style ? T("checkingVideo") : T("checking");
+    const preset = meta.kind === "preset", style = meta.kind === "style", aivideo = meta.kind === "aivideo";
+    const checking = preset ? T("checkingPreset") : style ? T("checkingVideo") : aivideo ? T("checkingDesc") : T("checking");
     const d = view.data;
     const box = el("div", { class: "status-card" });
     const head = (title, spinner) => box.append(el("div", { class: "status-head" },
@@ -1268,7 +1603,9 @@
     } else if (d.status === "rejected") {
       head(T("rejected"));
       msg();
-      if (preset) actions.append(btn(T("changePhoto"), "nav", "primary full", { to: "preset-new" }, "camera"));
+      // описание не прошло правила (96) — текст причины от бота и правка: описание и фото — в черновике на экране
+      if (aivideo) actions.append(btn(T("changeDesc"), "nav", "primary full", { to: "create/video" }, "sliders"));
+      else if (preset) actions.append(btn(T("changePhoto"), "make-preset", "primary full", { id: meta.trend }, "camera"));
       else if (style && meta.trend) actions.append(btn(T("changeVideo"), "nav", "primary full", { to: "style/" + meta.trend }, "video"));
       else if (meta.trend) {
         if (meta.preset) actions.append(btn(T("makePreset"), "make-preset", "primary full", { id: meta.trend }, "layers"));
@@ -1304,10 +1641,12 @@
       if (preset && meta.trend && trendById(meta.trend))
         actions.append(btn(T("backToTrend"), "back-to-trend", "primary full", { id: meta.trend }, "arrow"));
       else if (style) actions.append(btn(T("toStyles"), "nav", "ghost full", { to: "styles" }));
+      else if (aivideo) actions.append(btn(T("createMore"), "nav", "ghost full", { to: "create/video" }));
       else actions.append(btn(T("toTrends"), "nav", preset ? "primary full" : "ghost full", { to: "trends" }));
     } else if (d.status === "cancelled") {
       head(T("cancelled"));
-      actions.append(btn(T("toTrends"), "nav", "primary full", { to: "trends" }));
+      actions.append(aivideo ? btn(T("aivTitle"), "nav", "primary full", { to: "create/video" })
+        : btn(T("toTrends"), "nav", "primary full", { to: "trends" }));
     }
     if (view.offline) box.append(el("p", { class: "status-note offline", text: T("retry") }));
     if (!view.gone && (!d || CANCELABLE.has(d.status)))
@@ -1340,6 +1679,7 @@
       else if (view.id === id) view.data = { ...(view.data || {}), status: "cancelled" };
       const mine = myOrders.find((o) => o.id === id);
       if (mine) { mine.st = "cancelled"; persist(); }
+      settleAiv(id, "cancelled");
       stopPoll();
       render();
     } catch (e) {
@@ -1351,24 +1691,42 @@
     if (inTelegram && tg.openTelegramLink) tg.openTelegramLink(BOT_URL + path);
     else location.href = BOT_URL + path;
   }
+  // 96C: «🖼 Картинки» — раздел бота кодом w1-i (доступ решает бот); как «Оформить в боте»: чат бота, окно закрываем
+  function openImages() {
+    const url = BOT_URL + "?start=w1-i";
+    if (inTelegram && tg.openTelegramLink) {
+      tg.openTelegramLink(url);
+      setTimeout(() => tg.close(), 300);
+    } else location.href = url;
+  }
 
   // --- экраны ---
   function home() {
     const [h1, h2] = T("homeTitle"), [e1, e2] = T("tileEdit"), [r1, r2] = T("tileTrend"), [s1, s2] = T("tileStyle");
+    const [c1, c2] = T("tileCreate");
     return `<div class="page-head welcome"><div><h1>${esc(h1)}<br>${esc(h2)}</h1><p>${esc(T("homeSub"))}</p></div><div class="welcome-monti">${monti("l")}</div></div>
 <div data-mount="orders"></div>
 ${continueCards()}
-<div class="product-switch"><button class="product-tile" data-action="nav" data-to="edit">${icon("sliders")}<div><span>${esc(e1)}</span><small>${esc(e2)}</small></div>${icon("arrow")}</button><button class="product-tile active" data-action="nav" data-to="trends">${icon("spark")}<div><span>${esc(r1)}</span><small>${esc(r2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>${esc(s1)}</span><small>${esc(s2)}</small></div>${icon("arrow")}</button></div>
+<div class="product-switch"><button class="product-tile active" data-action="nav" data-to="trends">${icon("spark")}<div><span>${esc(r1)}</span><small>${esc(r2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="edit">${icon("sliders")}<div><span>${esc(e1)}</span><small>${esc(e2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>${esc(s1)}</span><small>${esc(s2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="create">${icon("plus")}<div><span>${esc(c1)}</span><small>${esc(c2)}</small></div>${icon("arrow")}</button></div>
 <div class="section-heading"><div><h2>${esc(T("trends"))}</h2><p class="section-hint">${esc(T("trendsHint"))}</p></div><button class="text-button" data-action="toggle-trends" aria-expanded="${trendsExpanded}" aria-controls="home-trends">${trendsExpanded ? "Свернуть" : "Показать"} ${icon(trendsExpanded ? "x" : "plus")}</button></div>
 ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
 <div class="section-heading"><div><h2>${esc(T("styles"))}</h2><p class="section-hint">${esc(T("stylesHint"))}</p></div></div>
 <div id="home-styles" data-mount="home-styles"></div>
-<div class="onboarding-strip">${monti("s")}<div><h3>Свой персонаж</h3><p>Лист персонажа по вашим фото — для нейромонтажа и своих проектов.</p></div>${button("Пресет", "nav", "secondary small", 'data-to="preset"', "plus")}</div>`;
+<div class="onboarding-strip">${monti("s")}<div><h3>Свой персонаж</h3><p>Лист персонажа по вашим фото — для нейромонтажа и своих проектов.</p></div>${button("Пресет", "new-preset", "secondary small", "", "plus")}</div>`;
   }
   const MOUNTS = { "home-trends": homeTrends, "home-styles": homeStyles, orders: homeOrders };
 
   function editLanding() {
     return `<div class="editor-landing">${pageTop("Изменить видео", "Что сделать с вашим видео?")}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="montage">${icon("scissors")}<div><span>🎬 Монтаж</span><small>Вырежем паузы, слова-паразиты и дубли, почистим голос</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="neuro">${icon("spark")}<div><span>🪄 Нейромонтаж</span><small>Новый стиль, фон или персонаж — нейросеть перерисует видео</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>🎨 ${esc(T("tileStyle")[0])}</span><small>${esc(T("tileStyle")[1])}</small></div>${icon("arrow")}</button></div><p class="bottom-note">Для монтажа и нейромонтажа видео пришлёте в чате с ботом. Стили — видео загружается прямо здесь.</p></div>`;
+  }
+  // 96C: вкладка «Создать» — AI-видео (в приложении), картинки (в боте), свой персонаж (в приложении)
+  function createPage() {
+    const tile = (ic, [t, s], attrs, cls = "") =>
+      `<button class="product-tile ${cls}" ${attrs}>${icon(ic)}<div><span>${esc(t)}</span><small>${esc(s)}</small></div>${icon("arrow")}</button>`;
+    return `<div class="editor-landing">${pageTop(esc(T("createTitle")), esc(T("createSub")))}<div class="service-pick">${
+      AIVIDEO_ON ? tile("video", T("cAiv"), 'data-action="nav" data-to="create/video"', "active") : ""}${
+      tile("image", T("cImg"), 'data-action="images"')}${tile("user", T("cChar"), 'data-action="new-preset"', AIVIDEO_ON ? "" : "active")
+    }</div><p class="bottom-note">${esc(T("cImgNote"))}</p></div>`;
   }
   const chips = (action, items, current) =>
     `<div class="choice-row">${items.map(([v, label]) => `<button class="choice ${v === current ? "selected" : ""}" data-action="${action}" data-value="${esc(v)}" aria-pressed="${v === current}">${esc(label)}</button>`).join("")}</div>`;
@@ -1385,22 +1743,17 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     const mode = NEURO_MODES.find((m) => m[0] === d.mode);
     return `<h2>🪄 Нейромонтаж</h2><p>${mode[2]}</p><div class="field"><span class="field-label">Режим</span>${chips("mode", NEURO_MODES.filter((m) => neuroModeOk(m[0])), d.mode)}</div><div class="field"><label for="n-sec">Длина видео</label>${select("n-sec", SHORT_SECONDS, d.sec, (v) => v + " сек")}</div><div class="field"><span class="field-label">Качество</span>${chips("q", QUALITIES.map((q) => [q, q]), d.q)}</div>`;
   }
-  function presetFields(d) {
-    return `<h2>🧩 Пресет персонажа</h2><p>Лист персонажа — портрет, поворот в полный рост, лицо, эмоции, позы — и файлы без фона: по ним нейросеть держит внешность в нейромонтаже.</p><div class="field"><span class="field-label">Стиль</span>${chips("style", PRESET_STYLES, d.style)}</div>`;
-  }
-  // что будет в боте — честно: что прислать и где цена
+  // что будет в боте — честно: что прислать и где цена (пресет с 96C — в приложении, экран «Свой персонаж»)
   function botSteps(d) {
     if (d.kind === "montage")
       return [`Пришлите ${d.clips > 1 ? d.clips + " видео одним альбомом" : "видео"} в чат с ботом.`, "Бот проверит длину и покажет точную цену.", "Оплата — в боте, потом готовое видео придёт туда же."];
-    if (d.kind === "neuro")
-      return ["Бот откроет выбранный режим — пришлите видео и, если режим просит, промпт или образец.", "Точная цена — в карточке после видео.", "Оплата — в боте, результат придёт туда же."];
-    return ["Фото или описание персонажа пришлёте в чате с ботом — из приложения фото не передаются.", "Бот покажет цену до оплаты.", "Лист персонажа и файлы придут в чат."];
+    return ["Бот откроет выбранный режим — пришлите видео и, если режим просит, промпт или образец.", "Точная цена — в карточке после видео.", "Оплата — в боте, результат придёт туда же."];
   }
   function flowPage(kind) {
     if (!draft || draft.kind !== kind) draft = drafts.find((x) => x.kind === kind) || newDraft(kind);
     const d = draft;
-    const fields = kind === "montage" ? montageFields(d) : kind === "neuro" ? neuroFields(d) : presetFields(d);
-    const title = kind === "preset" ? "Свой персонаж" : "Изменить видео";
+    const fields = kind === "montage" ? montageFields(d) : neuroFields(d);
+    const title = "Изменить видео";
     const body = `<div class="fields solo">${fields}${priceBlock(d)}<ol class="bot-steps">${botSteps(d).map((s) => `<li>${esc(s)}</li>`).join("")}</ol><div id="flow-error" class="form-error" role="alert"></div><div class="workflow-actions">${ctaHtml(d)}</div></div>`;
     return `<div class="workflow">${pageTop(title, "Черновик сохраняется на этом устройстве")}${body}</div>`;
   }
@@ -1456,7 +1809,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     navBar();
     const r = route();
     if (!r.startsWith("order/")) stopPoll();
-    if (!/^(who\/|preset-new|style\/)/.test(r) && photos.key && !sending) clearPhotos();
+    if (!/^(who\/|preset-new$|preset$|style\/)/.test(r) && photos.key && !sending) clearPhotos();
     if (TREND_FLOW.test(r) || r === "home") {
       const retry = catalogState === "down" && inTelegram && Date.now() - catalogAt > 30000;
       if ((catalogState === "idle" || retry) && tgChecked) loadTrends();
@@ -1471,7 +1824,9 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (/^(trend|who)\//.test(r)) {
       const t = trendById(tid);
       out = !t ? waitCatalog() : r.startsWith("trend/") ? trendPage(t) : askPage(t);
-    } else if (r === "preset-new") out = askPage(null);
+    } else if (r === "preset-new" || r === "preset") out = askPage(null);
+    else if (r === "create") out = createPage();
+    else if (r === "create/video") out = AIVIDEO_ON ? aivPage() : createPage();
     else if (r === "styles") out = stylesPage();
     else if (r.startsWith("style/") && STYLE_ID.test(r.slice(6)))
       out = styleById(r.slice(6)) ? stylePage(styleById(r.slice(6))) : stylesStateEl(false) || stylesPage();
@@ -1590,7 +1945,25 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (a === "quality") {
       const t = trendById(route().slice(6));
       if (t && t.prices[v]) { pick = { trend: t.id, q: v }; render(); }
-    } else if (a === "make-preset") { presetReturn = trendById(b.dataset.id) ? b.dataset.id : ""; nav("preset-new"); }
+    } else if (a === "make-preset") {
+      presetReturn = trendById(b.dataset.id) ? b.dataset.id : "";
+      nav(presetReturn ? "preset-new" : "preset");
+    } else if (a === "new-preset") { presetReturn = ""; nav("preset"); }
+    else if (a === "preset-style" && has(STYLE_CODES, v) && !sending) { presetStyle = v; render(); }
+    else if (a === "images") openImages();
+    else if (a === "aiv-ratio" && AIV_RATIOS.includes(v) && !sending) { aiv.ratio = v; aivTouched(); render(); }
+    else if (a === "aiv-more") { aiv.more = true; render(); }
+    else if (a === "aiv-q" && QUALITIES.includes(v) && !sending) { aiv.q = v; aivTouched(); render(); }
+    else if (a === "aiv-photo-remove" && !sending) {
+      const p = aiv.photos.find((x) => x.key === b.dataset.key);
+      if (p) {
+        if (p.url) URL.revokeObjectURL(p.url);
+        aiv.photos = aiv.photos.filter((x) => x !== p);
+        aivTouched();
+        render();
+      }
+    } else if (a === "send-aiv" && AIVIDEO_ON) sendAiv();
+    else if (a === "aiv-rules") aivRulesSheet();
     else if (a === "back-to-trend") { presetPick = b.dataset.id; nav("who/" + b.dataset.id); }
     else if (a === "ask-mode" && !sending) {
       const t = trendById(route().slice(4)), blk = t && askFor(t).find((x) => x.preset);
@@ -1610,7 +1983,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       }
     } else if (a === "send-photos") {
       const r = route();
-      if (r === "preset-new") sendOrder(null);
+      if (r === "preset-new" || r === "preset") sendOrder(null);
       else if (r.startsWith("who/") && trendById(r.slice(4))) sendOrder(trendById(r.slice(4)));
     } else if (a === "style") nav("style/" + b.dataset.id);
     else if (a === "style-q" && QUALITIES.includes(v) && !sending) { styleQ = v; render(); }
@@ -1652,16 +2025,17 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     } else if (draft && a === "clips") { draft.clips = Math.min(10, Math.max(1, draft.clips + Number(v))); changed(); }
     else if (draft && a === "mode" && neuroModeOk(v)) { draft.mode = v; changed(); }
     else if (draft && a === "q" && QUALITIES.includes(v)) { draft.q = v; changed(); }
-    else if (draft && a === "style" && STYLE_CODES[v]) { draft.style = v; changed(); }
+    else if (draft && a === "style" && has(STYLE_CODES, v)) { draft.style = v; changed(); }
     else if (a === "order") order();
     else if (a === "help")
-      showModal("Как это работает", `${monti("m")}<ul class="sheet-list"><li><strong>Тренды — прямо здесь</strong>Выберите ролик, качество и фото или свой пресет. Цену и оплату покажем в приложении, готовое видео придёт сюда и в чат бота @${BOT}.</li><li><strong>Монтаж и нейромонтаж — в боте</strong>Соберите заказ, кнопка откроет чат с ботом с вашим выбором. Видео пришлёте там.</li><li><strong>Оплата</strong>Цену всегда считает бот и показывает до оплаты.</li></ul>`);
+      showModal("Как это работает", `${monti("m")}<ul class="sheet-list"><li><strong>Тренды, стили, AI-видео и свой персонаж — прямо здесь</strong>Выберите ролик или стиль, опишите видео или добавьте фото. Цену и оплату покажем в приложении, готовое придёт сюда и в чат бота @${BOT}.</li><li><strong>Монтаж и нейромонтаж — в боте</strong>Соберите заказ, кнопка откроет чат с ботом с вашим выбором. Видео пришлёте там.</li><li><strong>Оплата</strong>Цену всегда считает бот и показывает до оплаты.</li></ul>`);
     else if (a === "about")
-      showModal("Данные", `<ul class="sheet-list"><li><strong>Что хранится здесь</strong>Черновики и номера ваших заказов трендов — только в этом браузере.</li><li><strong>Фото для тренда</strong>Уходят в Montaggio только для вашего заказа, сроки хранения — в политике конфиденциальности. В браузере не остаются.</li><li><strong>Монтаж и нейромонтаж</strong>В бота уходит только ваш выбор — коротким кодом в ссылке.</li></ul>`);
+      showModal("Данные", `<ul class="sheet-list"><li><strong>Что хранится здесь</strong>Черновики и номера ваших заказов — только в этом браузере.</li><li><strong>Фото, видео и описания для заказа</strong>Уходят в Montaggio только для вашего заказа, сроки хранения — в политике конфиденциальности. В браузере не остаются.</li><li><strong>Монтаж и нейромонтаж</strong>В бота уходит только ваш выбор — коротким кодом в ссылке.</li></ul>`);
     else if (a === "reset")
       showModal("Стереть данные?", `<p>Удалятся черновики и номера заказов на этом устройстве.</p>${button("Стереть", "confirm-reset", "primary full")}${button("Оставить", "close", "ghost full")}`);
     else if (a === "confirm-reset") {
       drafts = []; myOrders = []; draft = null;
+      clearAiv();
       try { localStorage.removeItem(storageKey); } catch {}
       closeModal(); render(); toast("Данные на этом устройстве стёрты.");
     }

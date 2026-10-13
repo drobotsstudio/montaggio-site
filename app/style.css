@@ -3516,3 +3516,101 @@ a.button {
     font-size: 13px;
   }
 }
+/* --- 96C: вкладка «Создать» — AI-видео, свой персонаж; «Свой сюжет» в карусели трендов --- */
+.own-story .tmedia {
+  border: 1px dashed #52672a;
+  background: #121410;
+}
+.own-story .tmedia::after {
+  content: none;
+}
+.own-story-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+.own-story-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid #52672a;
+  color: var(--lime);
+}
+.own-story-mark svg {
+  width: 26px;
+  height: 26px;
+}
+.photo-add[aria-disabled="true"] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.own-story-button {
+  margin-top: 12px;
+}
+.photo-num {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #000a;
+  color: #fff;
+  font-size: 11px;
+  pointer-events: none;
+}
+.aiv-page textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #3c3d35;
+  border-radius: 12px;
+  background: #121212;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+}
+.aiv-page .choice-row {
+  margin: 10px 0 0;
+}
+.aiv-range {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 4px 0 0;
+  accent-color: var(--lime);
+}
+.aiv-ban {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
+.aiv-rules {
+  padding: 0;
+  font-size: 13px;
+  color: var(--lime);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sheet .sheet-rules {
+  margin: 12px 0;
+  padding-left: 22px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.sheet-rules li + li {
+  margin-top: 6px;
+}

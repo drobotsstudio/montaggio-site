@@ -3193,8 +3193,66 @@ a.button {
   font-weight: 600;
   cursor: pointer;
 }
-.photo-page .face-check {
-  margin: 4px 0 0;
+/* --- 93C: «Предложить свой тренд» под каруселью трендов --- */
+.suggest-trend {
+  margin: 14px 0 6px;
+  padding: 14px 16px;
+  border: 1px dashed #52672a;
+  border-radius: 14px;
+}
+.suggest-trend p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+/* --- 92C: стили — экран заказа (видео клиента, подсказка) --- */
+.style-sample {
+  width: min(52%, 200px);
+}
+.client-video {
+  display: block;
+  width: 100%;
+  max-height: 46vh;
+  border-radius: 12px;
+  background: #000;
+  object-fit: contain;
+}
+.video-add {
+  aspect-ratio: auto;
+  min-height: 110px;
+  width: 100%;
+}
+.video-add svg {
+  width: 28px;
+  height: 28px;
+}
+.ask-block .ask-note {
+  margin: 10px 0 0;
+}
+.ask-note.bad {
+  color: #f0b45a;
+}
+.video-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.video-actions .button {
+  flex: 1;
+  margin: 0;
+}
+.style-page textarea,
+.wish-block textarea {
+  width: 100%;
+  min-height: 84px;
+  padding: 12px;
+  border: 1px solid #3c3d35;
+  border-radius: 12px;
+  background: #121212;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
 }
 .trend-page,
 .who-page,

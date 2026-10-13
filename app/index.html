@@ -6,11 +6,11 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <!-- промпт 83/91: внешнее — только скрипт Telegram и сервер заказов api.montaggio.shop (каталог трендов, заказ с фото,
-         статус и готовый результат); ролики трендов — со своего адреса -->
+    <!-- промпт 83/91: внешнее — только скрипт Telegram и сервер заказов api.montaggio.shop (каталоги трендов и стилей, заказ с фото и видео,
+         статус и готовый результат); ролики трендов — со своего адреса, превью стилей — static-public-media.higgsfield.ai и cdn.higgsfield.ai (92) -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://api.montaggio.shop; media-src 'self' blob: https://api.montaggio.shop; font-src 'self'; connect-src 'self' https://api.montaggio.shop; frame-src tg: tgb:; object-src 'none'; base-uri 'none'; form-action 'none'"
+      content="default-src 'self'; script-src 'self' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://api.montaggio.shop https://static-public-media.higgsfield.ai https://cdn.higgsfield.ai; media-src 'self' blob: https://api.montaggio.shop https://static-public-media.higgsfield.ai https://cdn.higgsfield.ai; font-src 'self'; connect-src 'self' https://api.montaggio.shop; frame-src tg: tgb:; object-src 'none'; base-uri 'none'; form-action 'none'"
     />
     <meta name="referrer" content="no-referrer" />
     <meta name="robots" content="noindex" />
@@ -21,7 +21,7 @@
     <script async src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="icon" href="../favicon-32.png" sizes="32x32" />
     <link rel="stylesheet" href="../assets/fonts.css" />
-    <link rel="stylesheet" href="style.css?v=2" />
+    <link rel="stylesheet" href="style.css?v=6" />
   </head>
   <body>
     <noscript
@@ -39,6 +39,6 @@
     <nav id="nav" class="bottom-nav" aria-label="Основная навигация"></nav>
     <div id="overlay"></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script src="app.js?v=2" defer></script>
+    <script src="app.js?v=6" defer></script>
   </body>
 </html>

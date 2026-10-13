@@ -11,7 +11,7 @@
     "estimate_error": 0.004,
     "pay_fees": 0.11,
     "markup": 0.20,
-    "markups": {},
+    "markups": {"neuro": 0.3},
     "min_prices": {"montage": 50}
   },
   "montage": {

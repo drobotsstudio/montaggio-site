@@ -82,6 +82,7 @@
       tileEdit: ["Изменить видео", "Смонтировать своё или изменить нейросетью"],
       tileTrend: ["Повторить тренд", "Ваше лицо в готовом трендовом ролике"],
       trends: "Тренды", trendsHint: "Листайте и выбирайте", allTrends: "Все тренды",
+      suggestBtn: "💡 Предложить свой тренд", suggestText: "Нашли классный ролик? Пришлите — мы попробуем сделать его трендом.",
       trendsSub: "Выберите ролик — повторим его с вами.", from: "от {p}", sec: "{n} сек",
       loading: "Загружаем тренды…", downTitle: "Тренды скоро вернутся", downText: "Пока оформите заказ в боте.",
       openBot: "Открыть бота", source: "Исходник", result: "Готовое видео",
@@ -93,16 +94,30 @@
       optMake: "Сделать пресет", optMakeHint: "1–3 фото — нарисуем лист персонажа, потом вернёмся к этому тренду.",
       optPhoto: "Загрузить фото", optPhotoHint: "1–8 ваших фото — без пресета.",
       photosTitle: "Ваши фото", presetTitle: "Новый пресет", presetSub: "Лист персонажа по вашим фото",
+      wishLabel: "Ваши пожелания (по желанию)", wishPh: "Например: пусть второй будет в очках · сделай меня блондином · пусть будет ночь",
+      wishHint: "Учтём, если это не меняет сам тренд и не нарушает правила.",
       askTitle: "Фото для ролика", optPhotos: "Фото", next: "Дальше", yourFace: "Ваше лицо", presetPhotos: "Ваши фото",
       presetUse: "Возьмём ваш последний пресет персонажа — фото для этого героя не нужны.", noPreset: "Нет пресета? Сделать",
-      errMin: "Добавьте фото: {label}.",
+      errMin: "Добавьте фото: {label}.", errTotalAll: "Видео и фото вместе — не больше 105 МБ.",
+      tileStyle: ["Сменить стиль", "Ваше видео в другом виде: аниме, игрушка, вязаный мир…"],
+      styles: "Стили", stylesHint: "Ваше видео — в новом виде", stylesSub: "Выберите стиль — перерисуем в нём ваше видео.",
+      allStyles: "Все стили", styleFrom: "от {p} за 5 с", stylesDown: "Стили скоро вернутся",
+      yourVideo: "Ваше видео", videoHint: "Одно видео от 4 до 30 секунд, до 100 МБ. Длиннее 30 с — возьмём первые 30 с.",
+      addVideo: "Выбрать видео", removeVideo: "Убрать видео", videoLen: "{n} с · {mb} МБ",
+      videoLong: "Видео {n} с — возьмём первые 30 с.", videoShort: "Видео {n} с — нужно не меньше 4 секунд.",
+      videoBig: "Видео больше 100 МБ — выберите покороче или сожмите его.", videoType: "Это не видео: {name}",
+      videoUnknown: "Длину проверим после загрузки.", videoNeed: "Выберите видео.",
+      styleRefs: "Кто или что должно быть в ролике", styleRefsHint: "По желанию, до 5 фото: персонаж, товар, одежда.",
+      promptLabel: "Подсказка (по желанию)", promptPh: "Например: тёплый закат, больше снега",
+      estimate: "≈ {p} за {n} с — точную цену покажем до оплаты.", orderStyle: "Стиль «{t}»",
+      checkingVideo: "Проверяем видео…", changeVideo: "Изменить видео", toStyles: "К стилям",
       photosHint: "1–8 фото, где хорошо видно лицо: свет спереди, без очков и масок. Можно себя, своего ребёнка или человека, который согласился. Чужие фото без согласия — нельзя.",
       presetHint: "1–3 фото: вы, ваш ребёнок или человек, который согласился. Чужие фото без согласия — нельзя. Нейросеть нарисует лист персонажа — портрет, поворот в полный рост, лицо, эмоции, позы — за 5–7 минут после оплаты.",
       addPhoto: "Добавить фото", removePhoto: "Убрать фото",
       send: "Отправить", sending: "Отправляем… {p}%", sent: "Отправлено",
       errCount: "Можно не больше {n} фото.", errSize: "Фото больше 10 МБ: {name}", errTotal: "Все фото вместе — не больше 40 МБ.",
       errType: "Это не фото: {name}", errNet: "Нет связи с сервером — попробуйте ещё раз.",
-      errUpload: "Файлы слишком большие или связь прервалась — попробуйте фото поменьше.",
+      errUpload: "Файлы слишком большие или связь прервалась — попробуйте файлы поменьше.",
       errNeed: "Добавьте хотя бы одно фото.",
       checking: "Проверяем фото…", checkingPreset: "Проверяем пресет…", toPay: "К оплате", orderNo: "Заказ №{n}",
       payCard: "💳 Оплатить картой / СБП", payStars: "⭐ Оплатить звёздами", payWhere: "Оплата на странице {host}",
@@ -125,6 +140,7 @@
       tileEdit: ["Edit a video", "Cut your own or change it with AI"],
       tileTrend: ["Repeat a trend", "Your face in a ready trending video"],
       trends: "Trends", trendsHint: "Swipe and pick", allTrends: "All trends",
+      suggestBtn: "💡 Suggest your trend", suggestText: "Found a cool video? Send it — we'll try to make it a trend.",
       trendsSub: "Pick a video — we'll repeat it with you.", from: "from {p}", sec: "{n} s",
       loading: "Loading trends…", downTitle: "Trends will be back soon", downText: "Meanwhile, order in the bot.",
       openBot: "Open the bot", source: "Original", result: "Final video",
@@ -136,16 +152,30 @@
       optMake: "Make a preset", optMakeHint: "1–3 photos — we'll draw a character sheet, then come back to this trend.",
       optPhoto: "Upload photos", optPhotoHint: "1–8 photos of you — no preset needed.",
       photosTitle: "Your photos", presetTitle: "New preset", presetSub: "A character sheet from your photos",
+      wishLabel: "Your wishes (optional)", wishPh: "For example: let the second one wear glasses · make me blond · make it night",
+      wishHint: "We'll apply them if they don't change the trend itself or break the rules.",
       askTitle: "Photos for the video", optPhotos: "Photos", next: "Next", yourFace: "Your face", presetPhotos: "Your photos",
       presetUse: "We'll use your latest character preset — no photos needed for this person.", noPreset: "No preset? Make one",
-      errMin: "Add photos: {label}.",
+      errMin: "Add photos: {label}.", errTotalAll: "Video and photos together — no more than 105 MB.",
+      tileStyle: ["Change the style", "Your video in a new look: anime, toy, knitted world…"],
+      styles: "Styles", stylesHint: "Your video in a new look", stylesSub: "Pick a style — we'll redraw your video in it.",
+      allStyles: "All styles", styleFrom: "from {p} per 5 s", stylesDown: "Styles will be back soon",
+      yourVideo: "Your video", videoHint: "One video from 4 to 30 seconds, up to 100 MB. Longer than 30 s — we take the first 30 s.",
+      addVideo: "Choose a video", removeVideo: "Remove video", videoLen: "{n} s · {mb} MB",
+      videoLong: "The video is {n} s — we'll take the first 30 s.", videoShort: "The video is {n} s — it needs at least 4 seconds.",
+      videoBig: "The video is larger than 100 MB — choose a shorter one or compress it.", videoType: "Not a video: {name}",
+      videoUnknown: "We'll check the length after upload.", videoNeed: "Choose a video.",
+      styleRefs: "Who or what should be in the video", styleRefsHint: "Optional, up to 5 photos: a character, a product, clothes.",
+      promptLabel: "Hint (optional)", promptPh: "For example: warm sunset, more snow",
+      estimate: "≈ {p} for {n} s — the exact price is shown before payment.", orderStyle: "Style “{t}”",
+      checkingVideo: "Checking the video…", changeVideo: "Change the video", toStyles: "To styles",
       photosHint: "1–8 photos with a clearly visible face: light from the front, no glasses or masks. You, your child or a person who agreed. Other people's photos without consent are not allowed.",
       presetHint: "1–3 photos: you, your child or a person who agreed. Other people's photos without consent are not allowed. The AI will draw a character sheet — portrait, full-length turnaround, face, emotions, poses — in 5–7 minutes after payment.",
       addPhoto: "Add photos", removePhoto: "Remove photo",
       send: "Send", sending: "Sending… {p}%", sent: "Sent",
       errCount: "No more than {n} photos.", errSize: "Photo larger than 10 MB: {name}", errTotal: "All photos together — no more than 40 MB.",
       errType: "Not a photo: {name}", errNet: "No connection to the server — please try again.",
-      errUpload: "The files are too large or the connection dropped — try smaller photos.",
+      errUpload: "The files are too large or the connection dropped — try smaller files.",
       errNeed: "Add at least one photo.",
       checking: "Checking the photos…", checkingPreset: "Checking the preset…", toPay: "To pay", orderNo: "Order #{n}",
       payCard: "💳 Pay by card", payStars: "⭐ Pay with Stars", payWhere: "Payment on {host}",
@@ -168,6 +198,7 @@
       tileEdit: ["Modifica un video", "Monta il tuo o cambialo con l'IA"],
       tileTrend: ["Ripeti un trend", "Il tuo volto in un video di tendenza"],
       trends: "Trend", trendsHint: "Scorri e scegli", allTrends: "Tutti i trend",
+      suggestBtn: "💡 Proponi il tuo trend", suggestText: "Hai trovato un bel video? Mandacelo — proveremo a farne un trend.",
       trendsSub: "Scegli un video — lo ripetiamo con te.", from: "da {p}", sec: "{n} s",
       loading: "Caricamento dei trend…", downTitle: "I trend tornano presto", downText: "Intanto ordina nel bot.",
       openBot: "Apri il bot", source: "Originale", result: "Video finale",
@@ -179,16 +210,30 @@
       optMake: "Crea un preset", optMakeHint: "1–3 foto — disegniamo la scheda del personaggio, poi torniamo a questo trend.",
       optPhoto: "Carica foto", optPhotoHint: "1–8 tue foto — senza preset.",
       photosTitle: "Le tue foto", presetTitle: "Nuovo preset", presetSub: "Scheda del personaggio dalle tue foto",
+      wishLabel: "I tuoi desideri (facoltativi)", wishPh: "Per esempio: il secondo con gli occhiali · fammi biondo · che sia notte",
+      wishHint: "Li applichiamo se non cambiano il trend e non violano le regole.",
       askTitle: "Foto per il video", optPhotos: "Foto", next: "Avanti", yourFace: "Il tuo volto", presetPhotos: "Le tue foto",
       presetUse: "Useremo il tuo ultimo preset del personaggio — per questa persona non servono foto.", noPreset: "Nessun preset? Crealo",
-      errMin: "Aggiungi foto: {label}.",
+      errMin: "Aggiungi foto: {label}.", errTotalAll: "Video e foto insieme — non più di 105 MB.",
+      tileStyle: ["Cambia stile", "Il tuo video in un nuovo look: anime, giocattolo, mondo a maglia…"],
+      styles: "Stili", stylesHint: "Il tuo video in un nuovo look", stylesSub: "Scegli uno stile — ridisegniamo il tuo video.",
+      allStyles: "Tutti gli stili", styleFrom: "da {p} per 5 s", stylesDown: "Gli stili tornano presto",
+      yourVideo: "Il tuo video", videoHint: "Un video da 4 a 30 secondi, fino a 100 MB. Oltre 30 s — prendiamo i primi 30 s.",
+      addVideo: "Scegli un video", removeVideo: "Rimuovi video", videoLen: "{n} s · {mb} MB",
+      videoLong: "Il video dura {n} s — prendiamo i primi 30 s.", videoShort: "Il video dura {n} s — servono almeno 4 secondi.",
+      videoBig: "Il video supera 100 MB — scegline uno più corto o comprimilo.", videoType: "Non è un video: {name}",
+      videoUnknown: "Controlleremo la durata dopo il caricamento.", videoNeed: "Scegli un video.",
+      styleRefs: "Chi o cosa deve esserci nel video", styleRefsHint: "Facoltativo, fino a 5 foto: un personaggio, un prodotto, dei vestiti.",
+      promptLabel: "Suggerimento (facoltativo)", promptPh: "Per esempio: tramonto caldo, più neve",
+      estimate: "≈ {p} per {n} s — il prezzo esatto prima del pagamento.", orderStyle: "Stile «{t}»",
+      checkingVideo: "Controlliamo il video…", changeVideo: "Cambia video", toStyles: "Agli stili",
       photosHint: "1–8 foto con il volto ben visibile: luce frontale, senza occhiali né mascherine. Tu, tuo figlio o una persona che ha acconsentito. Foto di altri senza consenso — no.",
       presetHint: "1–3 foto: tu, tuo figlio o una persona che ha acconsentito. Foto di altri senza consenso — no. L'IA disegnerà la scheda del personaggio — ritratto, giro completo, volto, emozioni, pose — in 5–7 minuti dopo il pagamento.",
       addPhoto: "Aggiungi foto", removePhoto: "Rimuovi foto",
       send: "Invia", sending: "Invio… {p}%", sent: "Inviato",
       errCount: "Non più di {n} foto.", errSize: "Foto oltre 10 MB: {name}", errTotal: "Tutte le foto insieme — non più di 40 MB.",
       errType: "Non è una foto: {name}", errNet: "Nessuna connessione al server — riprova.",
-      errUpload: "File troppo grandi o connessione interrotta — prova con foto più piccole.",
+      errUpload: "File troppo grandi o connessione interrotta — prova con file più piccoli.",
       errNeed: "Aggiungi almeno una foto.",
       checking: "Controlliamo le foto…", checkingPreset: "Controlliamo il preset…", toPay: "Da pagare", orderNo: "Ordine n. {n}",
       payCard: "💳 Paga con carta", payStars: "⭐ Paga con le Stelle", payWhere: "Pagamento su {host}",
@@ -339,7 +384,7 @@
   const TREND_ID = /^[A-Za-z0-9_-]{1,64}$/;
   const ORDER_TTL = 24 * 3600 * 1000;
   function cleanOrder(o) {
-    if (!o || typeof o !== "object" || typeof o.id !== "string" || !ORDER_ID.test(o.id) || !["trend", "preset"].includes(o.kind))
+    if (!o || typeof o !== "object" || typeof o.id !== "string" || !ORDER_ID.test(o.id) || !["trend", "preset", "style"].includes(o.kind))
       return null;
     const at = Number(o.at);
     if (!(at > Date.now() - ORDER_TTL && at <= Date.now() + 60000)) return null;
@@ -441,7 +486,7 @@
         else reject(new ApiError(x.status, body));
       });
       // сеть оборвалась во время заливки — или nginx отказал по размеру (413 без CORS браузер показывает как обрыв)
-      const fail = () => reject(new ApiError(0, form.has("photo[]") ? { message: T("errUpload") } : null));
+      const fail = () => reject(new ApiError(0, form.has("photo[]") || form.has("video") ? { message: T("errUpload") } : null));
       x.addEventListener("error", fail);
       x.addEventListener("timeout", fail);
       x.send(form);
@@ -485,6 +530,40 @@
     }, () => { catalogState = "down"; }).finally(() => { catalogAt = Date.now(); render(); });
   }
 
+  // --- стили (92C): своя карусель и свой экран, отдельно от трендов. Каталог — GET /api/styles; превью — ролики
+  // Higgsfield с их адреса (CSP media-src/img-src), только https://static-public-media.higgsfield.ai/ ---
+  const STYLE_MEDIA = "https://static-public-media.higgsfield.ai/";
+  const STYLE_CDN = "https://cdn.higgsfield.ai/";          // часть превью Higgsfield — на их CDN (13.10)
+  const STYLE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  const styleUrl = (u) => typeof u === "string" && u.length <= 1024 && (u.startsWith(STYLE_MEDIA) || u.startsWith(STYLE_CDN))
+    && /^[A-Za-z0-9_\-./:%~]+$/.test(u) && !u.includes("..") ? u : "";
+  let styles = null, stylesState = "idle", stylesAt = 0;      // idle | loading | ok | down; down — повтор через 30 с
+  function cleanStyle(s) {
+    if (!s || typeof s !== "object" || typeof s.id !== "string" || !STYLE_ID.test(s.id)) return null;
+    const titles = {};
+    for (const l of ["ru", "en", "it"])
+      titles[l] = s.titles && typeof s.titles[l] === "string" ? s.titles[l].trim().slice(0, 80) : "";
+    if (!(titles.ru || titles.en || titles.it) && typeof s.title === "string") titles.en = s.title.trim().slice(0, 80);
+    if (!(titles.ru || titles.en || titles.it)) return null;
+    // превью и обложки может не быть (сервер отбросил чужой адрес — null): карточка с заглушкой
+    return { id: s.id, titles, preview: styleUrl(s.preview_url), thumb: styleUrl(s.thumb_url) };
+  }
+  const styleName = (s) => s.titles[LANG] || s.titles.en || s.titles.ru || s.titles.it;
+  const styleById = (id) => (styles || []).find((s) => s.id === id);
+  function loadStyles() {
+    if (stylesState === "loading") return;
+    if (!inTelegram || !initData()) {
+      stylesState = "down";
+      render();
+      return;
+    }
+    stylesState = "loading";
+    api("/api/styles", { timeout: 5000 }).then((list) => {
+      styles = (Array.isArray(list) ? list : []).slice(0, 60).map(cleanStyle).filter(Boolean);
+      stylesState = styles.length ? "ok" : "down";
+    }, () => { stylesState = "down"; }).finally(() => { stylesAt = Date.now(); render(); });
+  }
+
   // --- маршруты ---
   // # без «/» — параметры запуска Telegram (#tgWebAppData=…), не маршрут: главная. Пока скрипт Telegram их не прочёл
   // (tgSettled), маршрут живёт в памяти (memRoute), а # не трогаем — иначе скрипт не узнает initData и версию
@@ -516,6 +595,7 @@
   function parentOf(r) {
     if (r.startsWith("trend/")) return "trends";
     if (r.startsWith("who/")) return "trend/" + r.slice(4);
+    if (r.startsWith("style/")) return "styles";
     if (r === "preset-new") return presetReturn ? "who/" + presetReturn : "trends";
     if (r.startsWith("order/")) return "trends";
     if (r.startsWith("edit/")) return "edit";
@@ -543,7 +623,7 @@
       ["home", "home"], ["trends", "spark"], ["edit", "sliders"], ["preset", "layers"], ["profile", "user"],
     ].map(([to, ic], i) => {
       const on = r === to || r.startsWith(to + "/") || (to === "trends" && /^(trend|who|order)\/|^preset-new$/.test(r))
-        || (to === "profile" && r === "drafts");
+        || (to === "profile" && r === "drafts") || (to === "edit" && /^styles$|^style\//.test(r));
       return `<a href="#/${to}" class="nav-item ${on ? "current" : ""}" ${r === to ? 'aria-current="page"' : ""}>${icon(ic)}<span>${esc(labels[i])}</span></a>`;
     }).join("");
   }
@@ -604,8 +684,11 @@
     if (state) return state;
     return el("div", {}, carousel("small"),
       el("div", { class: "carousel-footer" }, el("span", { text: T("trendsHint") }),
-        btn(T("allTrends"), "nav", "secondary small", { to: "trends" }, "arrow")));
+        btn(T("allTrends"), "nav", "secondary small", { to: "trends" }, "arrow")), suggestTrend());
   }
+  // 93C: «Предложить свой тренд» — в поддержку бота, глубокая ссылка ?start=trend (бот ведёт дальше сам)
+  const suggestTrend = () => el("div", { class: "suggest-trend" }, el("p", { text: T("suggestText") }),
+    btn(T("suggestBtn"), "suggest-trend", "secondary full"));
   function homeOrders() {
     const list = myOrders.filter((o) => SHOWN.has(o.st || "")).slice(0, 2);
     if (!list.length) return null;
@@ -613,16 +696,48 @@
       el("div", { class: "section-heading" }, el("h2", { text: T("myOrders") })),
       el("div", { class: "draft-list" }, list.map((o) => {
         const t = trendById(o.trend);
-        const name = o.kind === "preset" ? T("orderPreset") : T("orderTrend", { t: t ? trendName(t) : "…" });
+        const st = o.kind === "style" ? styleById(o.trend) : null;
+        const name = o.kind === "preset" ? T("orderPreset") : o.kind === "style" ? T("orderStyle", { t: st ? styleName(st) : "…" })
+          : T("orderTrend", { t: t ? trendName(t) : "…" });
         return el("button", { class: "continue-card", type: "button", data: { action: "nav", to: "order/" + o.id } },
-          el("span", { class: "continue-icon", icon: o.kind === "preset" ? "user" : "spark" }),
+          el("span", { class: "continue-icon", icon: o.kind === "preset" ? "user" : o.kind === "style" ? "layers" : "spark" }),
           el("span", {}, el("strong", { text: name }), el("small", { text: "№ " + o.id.slice(0, 6) + " · " + T("orderOpen") })),
           el("span", { icon: "arrow", class: "continue-arrow" }));
       })));
   }
+  // карусель стилей — своя, отдельно от трендов (владелец 13.10)
+  function styleCard(s, size) {
+    const p = stylePrice5();
+    return el("article", { class: `tcard ${size}` },
+      el("button", { class: "tcard-open", type: "button", data: { action: "style", id: s.id }, "aria-label": styleName(s) },
+        styleMedia(s),
+        el("h3", { text: styleName(s) }),
+        p ? el("span", { class: "tprice", text: T("styleFrom", { p: rub(p) }) }) : null));
+  }
+  function stylesStateEl(compact) {
+    if (stylesState === "ok") return null;
+    if (stylesState === "down")
+      return el("div", { class: "trends-down" + (compact ? " compact" : "") },
+        el("div", {}, el("h3", { text: T("stylesDown") }), el("p", { text: T("downText") })),
+        btn(T("openBot"), "open-bot", "secondary small", {}, "send"));
+    return el("div", { class: "trends-loading", role: "status" }, el("span", { class: "spinner" }), T("loading"));
+  }
+  const styleCarousel = (size) =>
+    el("div", { class: `tcarousel styles ${size}`, "aria-label": T("styles") }, styles.map((s) => styleCard(s, size)));
+  function homeStyles() {
+    const state = stylesStateEl(true);
+    if (state) return state;
+    return el("div", {}, styleCarousel("small"),
+      el("div", { class: "carousel-footer" }, el("span", { text: T("stylesSub") }),
+        btn(T("allStyles"), "nav", "secondary small", { to: "styles" }, "arrow")));
+  }
+  function stylesPage() {
+    return el("div", {}, el("div", { class: "page-head" }, el("div", {}, el("h1", { text: T("styles") }), el("p", { text: T("stylesSub") }))),
+      stylesStateEl(false) || styleCarousel("large"));
+  }
   function trendsPage() {
     return el("div", {}, el("div", { class: "page-head" }, el("div", {}, el("h1", { text: T("trends") }), el("p", { text: T("trendsSub") }))),
-      trendsState(false) || carousel("large"));
+      trendsState(false) || carousel("large"), suggestTrend());
   }
   // выбранное качество — по тренду, пока открыт этот тренд
   let pick = { trend: "", q: "480p" };
@@ -692,14 +807,17 @@
   const PHOTO_TYPES = /^image\/(jpeg|png|webp|heic|heif)$/;
   const MB = 1024 * 1024;
   const MAX_PHOTOS = 8;                // всего в заказе (контракт API)
-  let photos = { key: "", blocks: {}, preset: false, groupOpen: false };
+  // video, prompt — только у экрана стиля (92C): видео клиента и его подсказка, тоже лишь в памяти до отправки
+  const freshPhotos = () => ({ key: "", blocks: {}, preset: false, groupOpen: false, video: null, prompt: "" });
+  let photos = freshPhotos();
   const listOf = (k) => photos.blocks[k] || (photos.blocks[k] = []);
   const allPhotos = () => Object.values(photos.blocks).flat();
   const usesPreset = (b) => b.preset && photos.preset;
   const countOf = (b) => usesPreset(b) ? 0 : listOf(b.key).length;
   function clearPhotos() {
     allPhotos().forEach((p) => p.url && URL.revokeObjectURL(p.url));
-    photos = { key: "", blocks: {}, preset: false, groupOpen: false };
+    if (photos.video) URL.revokeObjectURL(photos.video.url);
+    photos = freshPhotos();
   }
   function dropBlock(k) {
     listOf(k).forEach((p) => p.url && URL.revokeObjectURL(p.url));
@@ -722,6 +840,7 @@
       if (listOf(b.key).length >= b.max) { err.push(T("errCount", { n: b.max })); break; }
       if (allPhotos().length >= MAX_PHOTOS) { err.push(T("errCount", { n: MAX_PHOTOS })); break; }
       if (allPhotos().reduce((s, p) => s + p.file.size, 0) + f.size > 40 * MB) { err.push(T("errTotal")); break; }
+      if (photos.video && styleBytes() + f.size > STYLE_BODY) { err.push(T("errTotalAll")); break; }
       const preview = /^image\/(jpeg|png|webp)$/.test(f.type);
       listOf(b.key).push({ file: f, url: preview ? URL.createObjectURL(f) : "", key: Math.random().toString(36).slice(2) });
     }
@@ -761,6 +880,22 @@
           el("small", { text: T("addPhoto") })) : null));
     return el("section", { class: "ask-block" + (b.group ? " item" : "") }, parts);
   }
+  // 94C: «Ваши пожелания» к тренду — необязательно, ≤ 300 знаков; текст уходит полем prompt, бот проверяет его после
+  // оплаты и переводит (не учёл — ролик по тренду и сообщение клиенту). Ввод без перерисовки экрана — фокус не теряется
+  const WISH_MAX = 300;
+  function wishBlock() {
+    const area = el("textarea", { id: "trend-wish", maxlength: String(WISH_MAX), rows: "3", placeholder: T("wishPh"),
+      oninput: (e) => {
+        photos.prompt = e.target.value.slice(0, WISH_MAX);
+        const c = $("#wish-count");
+        if (c) c.textContent = `${photos.prompt.length} / ${WISH_MAX}`;
+      } });
+    area.value = photos.prompt;
+    return el("section", { class: "ask-block wish-block" },
+      el("div", { class: "ask-head" }, el("h3", { text: T("wishLabel") }),
+        el("span", { class: "ask-count", id: "wish-count", text: `${photos.prompt.length} / ${WISH_MAX}` })),
+      el("p", { class: "photo-hint", text: T("wishHint") }), area);
+  }
   // экран «Фото для ролика» (тренд) и «Новый пресет» (t = null)
   function askPage(t) {
     const key = t ? "trend:" + t.id : "preset";
@@ -782,7 +917,7 @@
     send.id = "send-photos";
     const node = el("div", { class: "photo-page" },
       pageTopEl(t ? T("askTitle") : T("presetTitle"), t ? summaryLine(t) : T("presetSub")),
-      plain.map((b) => blockEl(b, t)), group,
+      plain.map((b) => blockEl(b, t)), group, t ? wishBlock() : null,
       el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
       el("div", { id: "flow-error", class: "form-error", role: "alert" }),
       el("div", { class: "workflow-actions" }, send));
@@ -793,6 +928,7 @@
   function updateSend() {
     const b = $("#send-photos"), r = route();
     if (!b) return;
+    if (r.startsWith("style/")) return void (b.disabled = sending || !!styleMissing());
     const t = r.startsWith("who/") ? trendById(r.slice(4)) : null;
     b.disabled = sending || !!missing(askFor(t));
   }
@@ -813,21 +949,27 @@
     form.append("face_ok", "1");
     form.append("lang", LANG);
     if (t) form.append("counts", ask.map(countOf).join(","));
+    const wish = t ? photos.prompt.trim().slice(0, WISH_MAX) : "";
+    if (wish) form.append("prompt", wish);            // 94C: пожелание клиента — недоверенный текст, проверяет бот
     let n = 0;
     for (const b of ask) if (!usesPreset(b)) listOf(b.key).forEach((p) => form.append("photo[]", p.file, `photo${++n}`));
+    await submit(form, n > 0, { kind: t ? "trend" : "preset", trend: t ? t.id : presetReturn, preset: usePreset ? 1 : 0 });
+  }
+  // отправка заказа с полосой загрузки; удалось — фото и видео стираются из памяти, экран заказа
+  async function submit(form, files, meta) {
     sending = true;
     updateSend();
     const bar = $("#upload-bar"), fill = bar && bar.firstChild, sendBtn = $("#send-photos");
     const label = sendBtn ? sendBtn.lastChild.textContent : "";
-    if (bar) bar.hidden = !n;
+    if (bar) bar.hidden = !files;
     showError("");
     try {
       const id = await postOrder(form, (f) => {
         if (fill) fill.style.width = Math.round(f * 100) + "%";
-        if (sendBtn && n) sendBtn.lastChild.textContent = T("sending", { p: Math.round(f * 100) });
+        if (sendBtn && files) sendBtn.lastChild.textContent = T("sending", { p: Math.round(f * 100) });
       });
       clearPhotos();
-      rememberOrder({ id, kind: t ? "trend" : "preset", trend: t ? t.id : presetReturn, preset: usePreset ? 1 : 0, at: Date.now() });
+      rememberOrder({ id, ...meta, at: Date.now() });
       sending = false;
       nav("order/" + id);
     } catch (e) {
@@ -837,6 +979,154 @@
       updateSend();
       showError(e.message);
     }
+  }
+
+  // --- заказ стиля (92C): видео клиента 4–30 с (≤ 100 МБ), 0–5 фото, подсказка ≤ 500, качество → сервер → цена бота ---
+  const VIDEO_TYPES = /^video\/(mp4|quicktime|webm)$/;
+  const VIDEO_MAX = 100 * MB;
+  const STYLE_BODY = 105 * MB;          // всё тело заказа: nginx пускает 110 МБ
+  const styleBytes = () => (photos.video ? photos.video.file.size : 0) + allPhotos().reduce((s, p) => s + p.file.size, 0);
+  // длина — по метаданным файла в браузере; не прочиталась (кодек, браузер) — бот проверит после загрузки
+  function videoLength(url) {
+    return new Promise((resolve) => {
+      const v = document.createElement("video");
+      let done = false;
+      const end = (d) => {
+        if (done) return;
+        done = true;
+        v.removeAttribute("src");
+        v.load();
+        resolve(d);
+      };
+      v.preload = "metadata";
+      v.muted = true;
+      v.addEventListener("loadedmetadata", () => end(Number.isFinite(v.duration) && v.duration > 0 ? v.duration : null));
+      v.addEventListener("error", () => end(null));
+      setTimeout(() => end(null), 8000);
+      v.src = url;
+    });
+  }
+  async function pickVideo(f) {
+    if (!f || sending) return;
+    const byName = !f.type && /\.(mp4|mov|webm)$/i.test(f.name || "");
+    if (!VIDEO_TYPES.test(f.type) && !byName) return showError(T("videoType", { name: f.name || "?" }));
+    if (f.size > VIDEO_MAX) return showError(T("videoBig"));
+    if (f.size + allPhotos().reduce((s, p) => s + p.file.size, 0) > STYLE_BODY) return showError(T("errTotalAll"));
+    const key = photos.key;
+    if (photos.video) URL.revokeObjectURL(photos.video.url);
+    const url = URL.createObjectURL(f);
+    photos.video = { file: f, url, dur: undefined };          // undefined — длину ещё читаем
+    render();
+    const dur = await videoLength(url);
+    if (photos.key !== key || !photos.video || photos.video.url !== url) return;
+    photos.video.dur = dur;
+    render();
+  }
+  const num = (x) => { const s = (Math.round(x * 10) / 10).toString(); return LANG === "en" ? s : s.replace(".", ","); };
+  const secs = (d) => num(d);
+  // чего не хватает до «Дальше»: текст ошибки; " " — ждём длину видео; всё есть — ""
+  function styleMissing() {
+    const v = photos.video;
+    if (!v) return T("videoNeed");
+    if (v.dur === undefined) return " ";
+    if (v.dur !== null && v.dur < 4) return T("videoShort", { n: secs(v.dur) });
+    return "";
+  }
+  // оценка цены — те же формулы, что у бота (Genjutsu за секунду): только ru, со знаком «≈»; точную считает бот
+  const billSec = (d) => Math.max(P ? P.neuro.min_billable_sec : 4, Math.ceil(Math.min(d, 30) - 0.01));
+  function styleEstimate(q) {
+    const v = photos.video;
+    if (LANG !== "ru" || !P || !v || !v.dur || v.dur < 4) return null;
+    return neuroPrice(Math.min(v.dur, 30), q, "replace");
+  }
+  const stylePrice5 = () => LANG === "ru" && P ? neuroPrice(5, "480p", "replace") : null;
+  // превью стиля в рамке .tmedia: ролик; нет ролика — обложка; нет ничего — заглушка-фон
+  function styleMedia(s, lazy = true) {
+    if (s.preview) return el("span", { class: "tmedia" }, styleVideo(s, lazy));
+    if (s.thumb) return el("span", { class: "tmedia" }, el("img", { class: "tvideo", src: s.thumb, alt: "", loading: "lazy" }));
+    return el("span", { class: "tmedia no-media" });
+  }
+  function styleVideo(s, lazy = true) {
+    const v = el("video", { class: "tvideo", poster: s.thumb || null, preload: lazy ? "none" : "metadata",
+      playsinline: true, "webkit-playsinline": true, loop: true, disablepictureinpicture: true, controls: REDUCED,
+      "aria-label": styleName(s) });
+    v.muted = true;
+    v.defaultMuted = true;
+    v.dataset.src = s.preview;
+    v.dataset.auto = REDUCED ? "0" : "1";
+    return v;
+  }
+  let styleQ = "480p";
+  function stylePage(s) {
+    const key = "style:" + s.id;
+    if (photos.key !== key) {
+      clearPhotos();
+      photos.key = key;
+      styleQ = "480p";
+    }
+    const v = photos.video;
+    const vparts = [el("div", { class: "ask-head" }, el("h3", { text: T("yourVideo") })),
+      el("p", { class: "photo-hint", text: T("videoHint") }),
+      el("input", { type: "file", accept: "video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm", class: "visually-hidden",
+        id: "video-input", onchange: (e) => { const f = e.target.files[0]; e.target.value = ""; pickVideo(f); } })];
+    if (v) {
+      const pv = el("video", { class: "client-video", src: v.url, controls: true, playsinline: true, preload: "metadata" });
+      pv.muted = true;
+      const short = v.dur && v.dur < 4;
+      const info = v.dur === undefined ? "…" : v.dur === null ? T("videoUnknown") : short ? T("videoShort", { n: secs(v.dur) })
+        : v.dur > 30 ? T("videoLong", { n: secs(v.dur) }) : T("videoLen", { n: secs(v.dur), mb: num(v.file.size / MB) });
+      vparts.push(pv, el("p", { class: "ask-note" + (short ? " bad" : ""), text: info }),
+        el("div", { class: "video-actions" },
+          el("label", { class: "button secondary small", for: "video-input" }, T("changeVideo")),
+          btn(T("removeVideo"), "video-remove", "ghost small")));
+    } else
+      vparts.push(el("label", { class: "photo-add video-add", for: "video-input" }, el("span", { icon: "video" }),
+        el("small", { text: T("addVideo") })));
+    const refs = { key: "IMG", kind: "item", preset: false, min: 0, max: 5, labels: one(T("styleRefs")),
+      hint: one(T("styleRefsHint")), group: null };
+    const prompt = el("textarea", { id: "style-prompt", maxlength: "500", rows: "3", placeholder: T("promptPh"),
+      oninput: (e) => {
+        photos.prompt = e.target.value.slice(0, 500);
+        const c = $("#prompt-count");
+        if (c) c.textContent = `${photos.prompt.length} / 500`;
+      } });
+    prompt.value = photos.prompt;
+    const qRow = el("div", { class: "q-row" }, QUALITIES.map((k) => {
+      const p = styleEstimate(k);
+      return el("button", { class: "q-choice" + (k === styleQ ? " selected" : ""), type: "button",
+        "aria-pressed": String(k === styleQ), data: { action: "style-q", value: k } },
+      el("strong", { text: T("q")[k] }), p ? el("small", { text: "≈ " + rub(p) }) : null);
+    }));
+    const est = styleEstimate(styleQ);
+    const send = btn(T("next") + (est ? ` · ≈ ${rub(est)}` : ""), "send-style", "primary full", { id: s.id }, "arrow");
+    send.id = "send-photos";
+    queueMicrotask(updateSend);
+    return el("div", { class: "photo-page style-page" }, pageTopEl(styleName(s), T("stylesHint")),
+      el("figure", { class: "sample style-sample" }, styleMedia(s, false)),
+      el("section", { class: "ask-block" }, vparts), blockEl(refs, null),
+      el("section", { class: "ask-block" }, el("div", { class: "ask-head" }, el("h3", { text: T("promptLabel") }),
+        el("span", { class: "ask-count", id: "prompt-count", text: `${photos.prompt.length} / 500` })), prompt),
+      el("div", { class: "field" }, el("span", { class: "field-label", text: T("quality") }), qRow),
+      est ? el("p", { class: "ask-note", text: T("estimate", { p: rub(est), n: billSec(v.dur) }) }) : null,
+      el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
+      el("div", { id: "flow-error", class: "form-error", role: "alert" }),
+      el("div", { class: "workflow-actions" }, send));
+  }
+  // заказ стиля: type=style, style_id, quality, lang, prompt?, video, photo[] (контракт 92)
+  async function sendStyle(s) {
+    if (sending) return;
+    const miss = styleMissing();
+    if (miss) return showError(miss.trim());
+    const form = new FormData();
+    form.append("type", "style");
+    form.append("style_id", s.id);
+    form.append("quality", styleQ);
+    form.append("lang", LANG);
+    const text = photos.prompt.trim().slice(0, 500);
+    if (text) form.append("prompt", text);
+    form.append("video", photos.video.file, "video");
+    allPhotos().forEach((p, i) => form.append("photo[]", p.file, `photo${i + 1}`));
+    await submit(form, true, { kind: "style", trend: s.id, preset: 0 });
   }
 
   // --- экран заказа (91): опрос раз в 2,5 с, пока окно видно; всё о деньгах — из ответа сервера ---
@@ -930,7 +1220,8 @@
         el("div", { class: "status-actions" }, btn(T("openBot"), "open-bot", "primary full", {}, "send")));
     }
     const meta = myOrders.find((o) => o.id === id) || { kind: "", trend: "", preset: 0 };
-    const preset = meta.kind === "preset";
+    const preset = meta.kind === "preset", style = meta.kind === "style";
+    const checking = preset ? T("checkingPreset") : style ? T("checkingVideo") : T("checking");
     const d = view.data;
     const box = el("div", { class: "status-card" });
     const head = (title, spinner) => box.append(el("div", { class: "status-head" },
@@ -941,9 +1232,9 @@
       head(T("notFound"));
       actions.append(btn(T("toTrends"), "nav", "primary full", { to: "trends" }));
     } else if (!d) {
-      head(preset ? T("checkingPreset") : T("checking"), true);
+      head(checking, true);
     } else if (d.status === "new" || d.status === "picked") {
-      head(preset ? T("checkingPreset") : T("checking"), true);
+      head(checking, true);
     } else if (d.status === "quoted") {
       // «Заказ №N · сумма»: номер — order_no бота, сумма — из ответа (₽ только ru); номера нет — только сумма
       const sum = LANG === "ru" && d.price_rub ? rub(d.price_rub) : d.price_stars ? stars(d.price_stars) : "";
@@ -968,6 +1259,7 @@
       head(T("rejected"));
       msg();
       if (preset) actions.append(btn(T("changePhoto"), "nav", "primary full", { to: "preset-new" }, "camera"));
+      else if (style && meta.trend) actions.append(btn(T("changeVideo"), "nav", "primary full", { to: "style/" + meta.trend }, "video"));
       else if (meta.trend) {
         if (meta.preset) actions.append(btn(T("makePreset"), "make-preset", "primary full", { id: meta.trend }, "layers"));
         actions.append(btn(meta.preset ? T("optPhoto") : T("changePhoto"), "nav", meta.preset ? "secondary full" : "primary full",
@@ -1001,6 +1293,7 @@
       box.append(el("p", { class: "status-note", text: preset ? T("inChatPreset") : T("inChat") }));
       if (preset && meta.trend && trendById(meta.trend))
         actions.append(btn(T("backToTrend"), "back-to-trend", "primary full", { id: meta.trend }, "arrow"));
+      else if (style) actions.append(btn(T("toStyles"), "nav", "ghost full", { to: "styles" }));
       else actions.append(btn(T("toTrends"), "nav", preset ? "primary full" : "ghost full", { to: "trends" }));
     } else if (d.status === "cancelled") {
       head(T("cancelled"));
@@ -1051,19 +1344,21 @@
 
   // --- экраны ---
   function home() {
-    const [h1, h2] = T("homeTitle"), [e1, e2] = T("tileEdit"), [r1, r2] = T("tileTrend");
+    const [h1, h2] = T("homeTitle"), [e1, e2] = T("tileEdit"), [r1, r2] = T("tileTrend"), [s1, s2] = T("tileStyle");
     return `<div class="page-head welcome"><div><h1>${esc(h1)}<br>${esc(h2)}</h1><p>${esc(T("homeSub"))}</p></div><div class="welcome-monti">${monti("l")}</div></div>
 <div data-mount="orders"></div>
 ${continueCards()}
-<div class="product-switch"><button class="product-tile" data-action="nav" data-to="edit">${icon("sliders")}<div><span>${esc(e1)}</span><small>${esc(e2)}</small></div>${icon("arrow")}</button><button class="product-tile active" data-action="nav" data-to="trends">${icon("spark")}<div><span>${esc(r1)}</span><small>${esc(r2)}</small></div>${icon("arrow")}</button></div>
+<div class="product-switch"><button class="product-tile" data-action="nav" data-to="edit">${icon("sliders")}<div><span>${esc(e1)}</span><small>${esc(e2)}</small></div>${icon("arrow")}</button><button class="product-tile active" data-action="nav" data-to="trends">${icon("spark")}<div><span>${esc(r1)}</span><small>${esc(r2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>${esc(s1)}</span><small>${esc(s2)}</small></div>${icon("arrow")}</button></div>
 <div class="section-heading"><div><h2>${esc(T("trends"))}</h2><p class="section-hint">${esc(T("trendsHint"))}</p></div><button class="text-button" data-action="toggle-trends" aria-expanded="${trendsExpanded}" aria-controls="home-trends">${trendsExpanded ? "Свернуть" : "Показать"} ${icon(trendsExpanded ? "x" : "plus")}</button></div>
 ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
+<div class="section-heading"><div><h2>${esc(T("styles"))}</h2><p class="section-hint">${esc(T("stylesHint"))}</p></div></div>
+<div id="home-styles" data-mount="home-styles"></div>
 <div class="onboarding-strip">${monti("s")}<div><h3>Свой персонаж</h3><p>Лист персонажа по вашим фото — для нейромонтажа и своих проектов.</p></div>${button("Пресет", "nav", "secondary small", 'data-to="preset"', "plus")}</div>`;
   }
-  const MOUNTS = { "home-trends": homeTrends, orders: homeOrders };
+  const MOUNTS = { "home-trends": homeTrends, "home-styles": homeStyles, orders: homeOrders };
 
   function editLanding() {
-    return `<div class="editor-landing">${pageTop("Изменить видео", "Что сделать с вашим видео?")}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="montage">${icon("scissors")}<div><span>🎬 Монтаж</span><small>Вырежем паузы, слова-паразиты и дубли, почистим голос</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="neuro">${icon("spark")}<div><span>🪄 Нейромонтаж</span><small>Новый стиль, фон или персонаж — нейросеть перерисует видео</small></div>${icon("arrow")}</button></div><p class="bottom-note">Видео пришлёте в чате с ботом — приложение его не загружает.</p></div>`;
+    return `<div class="editor-landing">${pageTop("Изменить видео", "Что сделать с вашим видео?")}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="montage">${icon("scissors")}<div><span>🎬 Монтаж</span><small>Вырежем паузы, слова-паразиты и дубли, почистим голос</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="neuro">${icon("spark")}<div><span>🪄 Нейромонтаж</span><small>Новый стиль, фон или персонаж — нейросеть перерисует видео</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>🎨 ${esc(T("tileStyle")[0])}</span><small>${esc(T("tileStyle")[1])}</small></div>${icon("arrow")}</button></div><p class="bottom-note">Для монтажа и нейромонтажа видео пришлёте в чате с ботом. Стили — видео загружается прямо здесь.</p></div>`;
   }
   const chips = (action, items, current) =>
     `<div class="choice-row">${items.map(([v, label]) => `<button class="choice ${v === current ? "selected" : ""}" data-action="${action}" data-value="${esc(v)}" aria-pressed="${v === current}">${esc(label)}</button>`).join("")}</div>`;
@@ -1151,10 +1446,14 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     navBar();
     const r = route();
     if (!r.startsWith("order/")) stopPoll();
-    if (!/^(who\/|preset-new)/.test(r) && photos.key && !sending) clearPhotos();
+    if (!/^(who\/|preset-new|style\/)/.test(r) && photos.key && !sending) clearPhotos();
     if (TREND_FLOW.test(r) || r === "home") {
       const retry = catalogState === "down" && inTelegram && Date.now() - catalogAt > 30000;
       if ((catalogState === "idle" || retry) && tgChecked) loadTrends();
+    }
+    if (/^(home|styles|style\/|order\/)/.test(r)) {    // стили — свой каталог, грузится отдельно от трендов
+      const retry = stylesState === "down" && inTelegram && Date.now() - stylesAt > 30000;
+      if ((stylesState === "idle" || retry) && tgChecked) loadStyles();
     }
     let out;
     const tid = r.replace(/^(trend|who)\//, "");
@@ -1163,6 +1462,9 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       const t = trendById(tid);
       out = !t ? waitCatalog() : r.startsWith("trend/") ? trendPage(t) : askPage(t);
     } else if (r === "preset-new") out = askPage(null);
+    else if (r === "styles") out = stylesPage();
+    else if (r.startsWith("style/") && STYLE_ID.test(r.slice(6)))
+      out = styleById(r.slice(6)) ? stylePage(styleById(r.slice(6))) : stylesStateEl(false) || stylesPage();
     else if (r.startsWith("order/") && ORDER_ID.test(r.slice(6))) out = orderPage(r.slice(6));
     else if (r === "edit") out = editLanding();
     else if (FLOW[r]) out = flowPage(FLOW[r]);
@@ -1178,7 +1480,8 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       else m.remove();
     });
     $("#app").replaceChildren(page);
-    document.title = "Montaggio — " + (TREND_FLOW.test(r) ? T("trends").toLowerCase() : r === "home" ? "приложение" : "заказ");
+    document.title = "Montaggio — " + (TREND_FLOW.test(r) ? T("trends").toLowerCase() : /^styles?(\/|$)/.test(r)
+      ? T("styles").toLowerCase() : r === "home" ? "приложение" : "заказ");
     const top = r === "home";
     $("#header-back").hidden = top || inTelegram;      // в Telegram — его кнопка «Назад» в шапке окна
     if (inTelegram && tg.BackButton) top ? tg.BackButton.hide() : tg.BackButton.show();
@@ -1291,10 +1594,20 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       const r = route();
       if (r === "preset-new") sendOrder(null);
       else if (r.startsWith("who/") && trendById(r.slice(4))) sendOrder(trendById(r.slice(4)));
+    } else if (a === "style") nav("style/" + b.dataset.id);
+    else if (a === "style-q" && QUALITIES.includes(v) && !sending) { styleQ = v; render(); }
+    else if (a === "video-remove" && !sending) {
+      if (photos.video) URL.revokeObjectURL(photos.video.url);
+      photos.video = null;
+      render();
+    } else if (a === "send-style") {
+      const s = styleById(route().slice(6));
+      if (s) sendStyle(s);
     } else if (a === "sound") toggleSound(b);
     else if (a === "pay-rub") pay("rub");
     else if (a === "pay-stars") pay("stars");
     else if (a === "open-bot") openBot();
+    else if (a === "suggest-trend") openBot("?start=trend");
     else if (a === "support") { openBot(); toast(T("supportHint")); }
     else if (a === "cancel-order")
       showModal(esc(T("cancelAsk")), `${button(esc(T("cancelYes")), "confirm-cancel", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);

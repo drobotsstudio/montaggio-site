@@ -3729,3 +3729,114 @@ a.button {
 .ask-block .video-add {
   aspect-ratio: auto;
 }
+/* --- 104C: вкладка «Тренды» по категориям — кнопки вверху (липкие под шапкой), категории сверху вниз, лента вбок;
+   страница категории — сетка 2 в ряд. Цвета, кнопки и карточки — существующие (.choice, .tcard, .text-button) --- */
+.cat-chips {
+  position: sticky;
+  top: 84px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: -8px 0 6px;
+  padding: 8px 0 10px;
+  background: linear-gradient(var(--bg) 85%, #09090900);
+  scrollbar-width: none;
+}
+.cat-chips::-webkit-scrollbar {
+  display: none;
+}
+.cat-chips .choice {
+  flex: none;
+  white-space: nowrap;
+  font-size: 14px;
+  min-height: 44px;
+}
+.tcat {
+  margin: 18px 0 8px;
+}
+.tcat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tcat-title {
+  min-width: 0;
+  margin: 0;
+  font-size: 21px;
+}
+.tcat-title button {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 0;
+  text-align: left;
+}
+.tcat-count {
+  flex: none;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.tcat-more {
+  flex: none;
+  min-height: 44px;
+}
+.tcat-hint {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.tcard.narrow {
+  flex-basis: 150px;
+}
+.tcard.narrow h3 {
+  font-size: 15px;
+}
+.trends-tab .own-story-button {
+  margin-top: 18px;
+}
+.cat-back {
+  min-height: 44px;
+  margin: -12px 0 6px;
+  font-size: 15px;
+  color: var(--text);
+}
+.cat-back svg {
+  width: 18px;
+  height: 18px;
+}
+.tgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px 14px;
+}
+.tgrid .tcard h3 {
+  font-size: 15px;
+}
+.in-telegram .cat-chips {
+  top: 56px;
+}
+@media (max-width: 700px) {
+  .cat-chips {
+    top: 70px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  /* лента — до краёв экрана: видно, что листается вбок */
+  .tcarousel.cat {
+    margin: 0 -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    scroll-padding-inline: 20px;
+  }
+  .tgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+}

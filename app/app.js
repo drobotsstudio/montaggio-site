@@ -1,6 +1,6 @@
-/* Mini App Montaggio. «Монтаж» и «Изменить видео» (бывший «Нейромонтаж») собираются здесь и оформляются в боте кодом заказа ?start=w1-….
-   Тренды, стили, AI-видео и свой персонаж (пресет) — заказ с фото, видео или описанием, оплата и результат — внутри
-   приложения через сервер заказов; «Картинки» — пока «скоро» (владелец 13.10).
+/* Mini App Montaggio. «Монтаж» собирается здесь и оформляется в боте кодом заказа ?start=w1-….
+   Тренды, стили, «Изменить видео» (101C; бывший «Нейромонтаж»), AI-видео и свой персонаж (пресет) — заказ с фото, видео
+   или описанием, оплата и результат — внутри приложения через сервер заказов; «Картинки» — пока «скоро» (владелец 13.10).
    Приложение ничего не решает о деньгах: цену, номер заказа и ссылки оплаты показывает из ответа сервера, который
    получил их от бота. Сеть: свой адрес (prices.json, ролики трендов), https://api.montaggio.shop (initData — только в
    заголовке), превью стилей и скрипт Telegram. */
@@ -195,7 +195,7 @@
       profileTitle: "Ваше пространство", profileSub: "Черновики — только на этом устройстве",
       profileRows: [["Черновики", "{n} не оформлено"], ["Как это работает", "Приложение, бот и оплата"], ["Данные", "Что хранится и что куда уходит"]],
       resetLink: "Стереть данные на этом устройстве", resetTitle: "Стереть данные?",
-      resetText: "Удалятся черновики, описание AI-видео и номера заказов на этом устройстве.", resetYes: "Стереть",
+      resetText: "Удалятся черновики, описания AI-видео и «Изменить видео» и номера заказов на этом устройстве.", resetYes: "Стереть",
       resetDone: "Данные на этом устройстве стёрты.",
       // 97C: вкладка «Изменить» по правкам партнёра (12.10): «Изменить видео» (нейросеть) — первым, «Монтаж» — последним
       editTitle: "Изменить видео", editSub: "Что сделать с вашим видео?",
@@ -222,6 +222,24 @@
       stepsNeuro: ["Бот откроет выбранный режим — пришлите видео и, если режим просит, промпт или образец.", "Точная цена — в карточке после видео.", "Оплата — в боте, результат придёт туда же."],
       priceNone: "Точную цену бот покажет до оплаты.", priceMontage: "Бот проверит длину и покажет точную цену до оплаты.",
       priceNeuro: "Примерная цена. Точная — в боте перед оплатой.", toBot: "Оформить в боте", needOpt: "Оставьте хотя бы один пункт монтажа.",
+      // 101C: «Изменить видео» целиком в приложении — видео, описание, образец, качество → сервер → счёт бота
+      editNoteApp: "«Изменить видео» и «Сменить стиль» — видео загружается прямо здесь. «Монтаж» — видео пришлёте в чате с ботом.",
+      nvVideoHint: "Одно видео от 4 до 30 секунд, до 150 МБ. Звук останется ваш.", nvOther: "Другое видео",
+      nvFixTitle: "Описание нужно поправить", sentOpen: "Заказ уже отправлен — открыть", nvFilesLost: "Видео и фото на этом устройстве не сохранились — их нужно будет выбрать снова.",
+      nvLong: "Видео {n} с — обрежьте его до 30 с и выберите снова.", nvBig: "Видео больше 150 МБ — выберите покороче или сожмите его.",
+      nvWhat: "Что изменить?", nvWords: "{n} / 1000 слов",
+      nvPh: { redraw: "Например: красное платье вместо джинсов, вечерний макияж, волосы собраны",
+        replace: "Например: замени девушку в кадре на персонажа с Фото 1, движения и фон — как в видео" },
+      nvHints: ["Опишите, кого и как изменить · текст по-английски уйдёт слово в слово",
+        "Фото 1, 2… — в описании можно писать «как на Фото 1»"],
+      nvSample: "Образец", nvSampleHint: { redraw: "По желанию: ваш персонаж и/или до {n} фото — одежда, образ, внешность. На каждом фото — один человек.",
+        replace: "Обязательно: ваш персонаж и/или до {n} фото — того, кто появится в видео. На каждом фото — один человек." },
+      nvPreset: "Мой персонаж", nvPresetHint: "Последний персонаж из «Свой персонаж»", nvNoPreset: "Нет персонажа? Сделать",
+      nvNeedSample: "Для «Заменить персонажа» нужен образец — «Мой персонаж» или фото.", nvNeedDesc: "Опишите, что изменить.",
+      nvBtn: "Изменить видео", nvNote: "Примерная цена — точную покажем перед оплатой.", nvName: "🪄 Изменить видео",
+      checkingNeuro: "Проверяем видео и описание…", orderNeuro: "Изменить видео", nvFix: "Изменить заказ", nvMore: "Изменить ещё видео",
+      aboutNv: ["«Изменить видео»", "Черновик описания и настроек — только на этом устройстве, до 7 дней; видео и фото в браузере не остаются."],
+      aboutBot: ["«Монтаж»", "В бота уходит только ваш выбор — коротким кодом в ссылке."],
     },
     en: {
       nav: ["Home", "Trends", "Edit", "Create", "Profile"],
@@ -328,7 +346,7 @@
       profileTitle: "Your space", profileSub: "Drafts — only on this device",
       profileRows: [["Drafts", "{n} not placed"], ["How it works", "The app, the bot and payment"], ["Data", "What is stored and where it goes"]],
       resetLink: "Erase data on this device", resetTitle: "Erase data?",
-      resetText: "Drafts, the AI video description and order numbers on this device will be deleted.", resetYes: "Erase",
+      resetText: "Drafts, the AI video and “Change the video” descriptions and order numbers on this device will be deleted.", resetYes: "Erase",
       resetDone: "Data on this device erased.",
       editTitle: "Edit a video", editSub: "What shall we do with your video?",
       svcNeuro: ["🪄 Change the video", "A new style, background or character — the AI will redraw your video"],
@@ -354,6 +372,23 @@
       stepsNeuro: ["The bot will open the chosen mode — send the video and, if the mode asks, a prompt or a sample.", "The exact price is in the card after the video.", "Pay in the bot — the result will arrive there too."],
       priceNone: "The bot will show the exact price before payment.", priceMontage: "The bot will check the length and show the exact price before payment.",
       priceNeuro: "Approximate price. The exact one is in the bot before payment.", toBot: "Order in the bot", needOpt: "Keep at least one editing item.",
+      editNoteApp: "“Change the video” and “Change the style” — the video is uploaded right here. “Editing” — you'll send the video in the bot chat.",
+      nvVideoHint: "One video from 4 to 30 seconds, up to 150 MB. Your sound stays.", nvOther: "Another video",
+      nvFixTitle: "The description needs a fix", sentOpen: "Order already sent — open it", nvFilesLost: "The video and photos aren't saved on this device — you'll need to choose them again.",
+      nvLong: "The video is {n} s — trim it to 30 s and choose it again.", nvBig: "The video is larger than 150 MB — choose a shorter one or compress it.",
+      nvWhat: "What to change?", nvWords: "{n} / 1000 words",
+      nvPh: { redraw: "For example: a red dress instead of jeans, evening makeup, hair tied up",
+        replace: "For example: replace the girl in the shot with the character from Photo 1, movements and background as in the video" },
+      nvHints: ["Describe who to change and how · an English description goes word for word",
+        "Photo 1, 2… — you can write “like in Photo 1”"],
+      nvSample: "Sample", nvSampleHint: { redraw: "Optional: your character and/or up to {n} photos — clothes, look, appearance. One person per photo.",
+        replace: "Required: your character and/or up to {n} photos of who will appear in the video. One person per photo." },
+      nvPreset: "My character", nvPresetHint: "Your latest character from “Your character”", nvNoPreset: "No character? Make one",
+      nvNeedSample: "“Replace a character” needs a sample — “My character” or photos.", nvNeedDesc: "Describe what to change.",
+      nvBtn: "Change the video", nvNote: "Approximate price — the exact one is shown before payment.", nvName: "🪄 Change the video",
+      checkingNeuro: "Checking the video and the description…", orderNeuro: "Change the video", nvFix: "Edit the order", nvMore: "Change another video",
+      aboutNv: ["“Change the video”", "The draft of the description and settings — only on this device, up to 7 days; videos and photos don't stay in the browser."],
+      aboutBot: ["“Editing”", "Only your choice goes to the bot — as a short code in the link."],
     },
     it: {
       nav: ["Home", "Trend", "Modifica", "Crea", "Profilo"],
@@ -460,7 +495,7 @@
       profileTitle: "Il tuo spazio", profileSub: "Bozze — solo su questo dispositivo",
       profileRows: [["Bozze", "{n} non inviate"], ["Come funziona", "L'app, il bot e il pagamento"], ["Dati", "Cosa è salvato e dove va"]],
       resetLink: "Cancella dati su questo dispositivo", resetTitle: "Cancellare i dati?",
-      resetText: "Verranno eliminati bozze, descrizione del video AI e numeri d'ordine su questo dispositivo.", resetYes: "Cancella",
+      resetText: "Verranno eliminati bozze, descrizioni del video AI e di «Cambia il video» e numeri d'ordine su questo dispositivo.", resetYes: "Cancella",
       resetDone: "Dati su questo dispositivo cancellati.",
       editTitle: "Modifica un video", editSub: "Cosa facciamo con il tuo video?",
       svcNeuro: ["🪄 Cambia il video", "Nuovo stile, sfondo o personaggio — l'IA ridisegnerà il tuo video"],
@@ -486,6 +521,23 @@
       stepsNeuro: ["Il bot aprirà la modalità scelta — invia il video e, se la modalità lo chiede, un prompt o un modello.", "Il prezzo esatto — nella scheda dopo il video.", "Pagamento nel bot — il risultato arriverà lì."],
       priceNone: "Il prezzo esatto lo mostra il bot prima del pagamento.", priceMontage: "Il bot controllerà la durata e mostrerà il prezzo esatto prima del pagamento.",
       priceNeuro: "Prezzo indicativo. Quello esatto — nel bot prima del pagamento.", toBot: "Ordina nel bot", needOpt: "Lascia almeno una voce del montaggio.",
+      editNoteApp: "«Cambia il video» e «Cambia stile» — il video si carica qui. «Montaggio» — il video lo invii nella chat del bot.",
+      nvVideoHint: "Un video da 4 a 30 secondi, fino a 150 MB. L'audio resta il tuo.", nvOther: "Un altro video",
+      nvFixTitle: "La descrizione va corretta", sentOpen: "Ordine già inviato — aprilo", nvFilesLost: "Video e foto non sono salvati su questo dispositivo — dovrai sceglierli di nuovo.",
+      nvLong: "Il video dura {n} s — taglialo a 30 s e sceglilo di nuovo.", nvBig: "Il video supera 150 MB — scegline uno più corto o comprimilo.",
+      nvWhat: "Cosa cambiare?", nvWords: "{n} / 1000 parole",
+      nvPh: { redraw: "Per esempio: un vestito rosso al posto dei jeans, trucco da sera, capelli raccolti",
+        replace: "Per esempio: sostituisci la ragazza nell'inquadratura con il personaggio della Foto 1, movimenti e sfondo come nel video" },
+      nvHints: ["Descrivi chi cambiare e come · il testo in inglese va parola per parola",
+        "Foto 1, 2… — puoi scrivere «come nella Foto 1»"],
+      nvSample: "Modello", nvSampleHint: { redraw: "Facoltativo: il tuo personaggio e/o fino a {n} foto — vestiti, look, aspetto. Una persona per foto.",
+        replace: "Obbligatorio: il tuo personaggio e/o fino a {n} foto di chi apparirà nel video. Una persona per foto." },
+      nvPreset: "Il mio personaggio", nvPresetHint: "L'ultimo personaggio da «Il tuo personaggio»", nvNoPreset: "Nessun personaggio? Crealo",
+      nvNeedSample: "«Sostituisci il personaggio» richiede un modello — «Il mio personaggio» o foto.", nvNeedDesc: "Descrivi cosa cambiare.",
+      nvBtn: "Cambia il video", nvNote: "Prezzo indicativo — quello esatto prima del pagamento.", nvName: "🪄 Cambia il video",
+      checkingNeuro: "Controlliamo il video e la descrizione…", orderNeuro: "Cambia il video", nvFix: "Modifica l'ordine", nvMore: "Cambia un altro video",
+      aboutNv: ["«Cambia il video»", "La bozza della descrizione e delle impostazioni — solo su questo dispositivo, fino a 7 giorni; video e foto non restano nel browser."],
+      aboutBot: ["«Montaggio»", "Al bot va solo la tua scelta — come codice breve nel link."],
     },
   };
   const T = (key, vars) => {
@@ -583,6 +635,9 @@
   // 96C: AI-видео из приложения (заказ через сервер). Отказались от сервера (SERVER_ORDERS=off у бота) — false: плитка
   // во вкладке «Создать», «Свой сюжет» в трендах и экран #/create/video не показываются; в боте «🎥 AI-видео» как было
   const AIVIDEO_ON = true;
+  // 101C: «Изменить видео» целиком в приложении (заказ через сервер, type=neuro). Отказались от сервера (SERVER_ORDERS
+  // у бота без neuro или off) — false: экран #/edit/neuro снова собирает код w1-n и «Оформить в боте», как до 101
+  const NEURO_APP_ON = true;
   const PRESET_STYLES = [["real", "📷 Реализм"], ["cartoon", "🎨 Мультфильм"], ["anime", "🌸 Аниме"], ["3d", "🧸 3D"]];
   const QUALITIES = ["480p", "720p", "1080p"];
   const MONTAGE_SECONDS = [15, 30, 45, 60, 90, 120, 180];
@@ -620,7 +675,7 @@
   const TREND_ID = /^[A-Za-z0-9_-]{1,64}$/;
   const ORDER_TTL = 24 * 3600 * 1000;
   function cleanOrder(o) {
-    if (!o || typeof o !== "object" || typeof o.id !== "string" || !ORDER_ID.test(o.id) || !["trend", "preset", "style", "aivideo"].includes(o.kind))
+    if (!o || typeof o !== "object" || typeof o.id !== "string" || !ORDER_ID.test(o.id) || !["trend", "preset", "style", "aivideo", "neuro"].includes(o.kind))
       return null;
     const at = Number(o.at);
     if (!(at > Date.now() - ORDER_TTL && at <= Date.now() + 60000)) return null;
@@ -637,6 +692,12 @@
     const m = myOrders.find((o) => o.id === id);
     return !!(m && m.payAt && d && d.status === "quoted" && Date.now() - m.payAt < PAY_WAIT);
   }
+  const orderKind = (id) => (myOrders.find((o) => o.id === id) || {}).kind || "";
+  // доделка 101C (ревью): черновик уже ушёл заказом, и тот ещё до оплаты (или статус не узнали) — вместо второй
+  // отправки (вторая заливка, вторая проверка описания, два живых счёта) кнопка открывает этот заказ. Отменён или
+  // отклонён — отправка снова доступна; правка черновика отвязывает его от заказа (touched)
+  const UNPAID = new Set(["", "new", "picked", "quoted", "needs_consent"]);
+  const liveSent = (id) => !!id && myOrders.some((o) => o.id === id && UNPAID.has(o.st || ""));
   function markPay(id, on = true) {
     const m = myOrders.find((o) => o.id === id);
     if (m) { m.payAt = on ? Date.now() : 0; persist(); }
@@ -646,7 +707,7 @@
 
   // --- хранилище этого устройства ---
   const storageKey = "montaggio-app-v1";
-  let drafts = [], myOrders = [], trendsExpanded = true, storedAiv = null, storedLast = null;
+  let drafts = [], myOrders = [], trendsExpanded = true, storedAiv = null, storedLast = null, storedNv = null;
   try {
     const s = JSON.parse(localStorage.getItem(storageKey) || "{}");
     drafts = (Array.isArray(s.drafts) ? s.drafts : []).map(cleanDraft).filter(Boolean).slice(0, 8);
@@ -654,11 +715,13 @@
     trendsExpanded = s.trendsExpanded !== false;
     storedAiv = s.aiv;                // черновик AI-видео (96C) — разбирает restoreAiv
     storedLast = s.aivLast;           // последнее оплаченное описание (97C) — тоже restoreAiv
+    storedNv = s.nv;                  // черновик «Изменить видео» (101C) — разбирает restoreNv
   } catch {}
   let storageWarned = false;
   function persist() {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ drafts, orders: myOrders, trendsExpanded, aiv: aivStored(), aivLast: packAiv(aivLast) }));
+      localStorage.setItem(storageKey, JSON.stringify({ drafts, orders: myOrders, trendsExpanded, aiv: aivStored(), aivLast: packAiv(aivLast),
+        nv: packNv(nv) }));
     } catch {
       if (!storageWarned) {
         storageWarned = true;
@@ -869,6 +932,11 @@
       dropDraft(d.id);
       return void nav("preset");
     }
+    if (d.kind === "neuro" && NEURO_APP_ON) {      // 101C: старый черновик (код в бота) — режим и качество в экран
+      if (!nv.desc.trim() && !nv.order && !nv.video) { nv.mode = d.mode; nv.q = d.q; nvTouched(); }
+      dropDraft(d.id);
+      return void nav("edit/neuro");
+    }
     draft = d;
     nav("edit/" + d.kind);
   }
@@ -989,8 +1057,8 @@
         const t = trendById(o.trend);
         const st = o.kind === "style" ? styleById(o.trend) : null;
         const name = o.kind === "preset" ? T("orderPreset") : o.kind === "style" ? T("orderStyle", { t: st ? styleName(st) : "…" })
-          : o.kind === "aivideo" ? T("orderAiv") : T("orderTrend", { t: t ? trendName(t) : "…" });
-        const ic = { preset: "user", style: "layers", aivideo: "video" }[o.kind] || "spark";
+          : o.kind === "aivideo" ? T("orderAiv") : o.kind === "neuro" ? T("orderNeuro") : T("orderTrend", { t: t ? trendName(t) : "…" });
+        const ic = { preset: "user", style: "layers", aivideo: "video", neuro: "sliders" }[o.kind] || "spark";
         return el("button", { class: "continue-card", type: "button", data: { action: "nav", to: "order/" + o.id } },
           el("span", { class: "continue-icon", icon: ic }),
           el("span", {}, el("strong", { text: name }), el("small", { text: "№ " + o.id.slice(0, 6) + " · " + T("orderOpen") })),
@@ -1242,7 +1310,19 @@
       const input = $("#aiv-photo-input"), add = document.querySelector(".aiv-page .photo-add");
       if (input) input.disabled = sending;
       if (add) add.setAttribute("aria-disabled", String(sending));
-      return void (b.disabled = sending || !aiv.desc.trim());
+      const live = liveSent(aiv.order);
+      if (!sending) b.lastChild.textContent = aivSendLabel();
+      return void (b.disabled = sending || (!live && !aiv.desc.trim()));
+    }
+    if (r === "edit/neuro") {
+      const input = $("#nv-photo-input"), add = document.querySelector(".nv-page .photo-add:not(.video-add)");
+      if (input) input.disabled = sending;
+      if (add) add.setAttribute("aria-disabled", String(sending));
+      const miss = nvMissing(), need = $("#nv-need"), v = nv.video, live = liveSent(nv.order);
+      // о видео (длина, размер) уже сказано под самим видео — здесь только описание, образец и число фото
+      if (need) need.textContent = live || (v && (v.dur === undefined || (v.dur !== null && !nvDurOk(v.dur)))) ? "" : miss.trim();
+      if (!sending) b.lastChild.textContent = nvSendLabel();
+      return void (b.disabled = sending || (!live && !!miss));
     }
     const t = r.startsWith("who/") ? trendById(r.slice(4)) : null;
     b.disabled = sending || !!missing(askFor(t));
@@ -1325,21 +1405,45 @@
       v.src = url;
     });
   }
-  async function pickVideo(f) {
+  // куда кладём видео: стиль (92C) — photos.video, «Изменить видео» (101C) — nv.video; свои пределы и тексты
+  const styleBox = { max: VIDEO_MAX, body: STYLE_BODY, big: "videoBig", total: "errTotalAll",
+    others: () => allPhotos().reduce((s, p) => s + p.file.size, 0), owner: () => photos.key,
+    get: () => photos.video, set: (v) => { photos.video = v; } };
+  async function pickVideo(f, box = styleBox) {
     if (!f || sending) return;
     const byName = !f.type && /\.(mp4|mov|webm)$/i.test(f.name || "");
     if (!VIDEO_TYPES.test(f.type) && !byName) return showError(T("videoType", { name: f.name || "?" }));
-    if (f.size > VIDEO_MAX) return showError(T("videoBig"));
-    if (f.size + allPhotos().reduce((s, p) => s + p.file.size, 0) > STYLE_BODY) return showError(T("errTotalAll"));
-    const key = photos.key;
-    if (photos.video) URL.revokeObjectURL(photos.video.url);
+    if (f.size > box.max) return showError(T(box.big));
+    if (f.size + box.others() > box.body) return showError(T(box.total));
+    const owner = box.owner();
+    if (box.get()) URL.revokeObjectURL(box.get().url);
     const url = URL.createObjectURL(f);
-    photos.video = { file: f, url, dur: undefined };          // undefined — длину ещё читаем
+    box.set({ file: f, url, dur: undefined });          // undefined — длину ещё читаем
     render();
     const dur = await videoLength(url);
-    if (photos.key !== key || !photos.video || photos.video.url !== url) return;
-    photos.video.dur = dur;
+    const v = box.get();
+    if (box.owner() !== owner || !v || v.url !== url) return;
+    v.dur = dur;
     render();
+  }
+  // блок «Ваше видео»: выбор, превью blob: с кнопками плеера, длина и размер (info — текст под превью и плохой ли он)
+  function videoParts(v, hint, onPick, removeAction, info, changeLabel = T("changeVideo")) {
+    const parts = [el("div", { class: "ask-head" }, el("h3", { text: T("yourVideo") })),
+      el("p", { class: "photo-hint", text: hint }),
+      el("input", { type: "file", accept: "video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm", class: "visually-hidden",
+        id: "video-input", onchange: (e) => { const f = e.target.files[0]; e.target.value = ""; onPick(f); } })];
+    if (v) {
+      const pv = el("video", { class: "client-video", src: v.url, controls: true, playsinline: true, preload: "metadata" });
+      pv.muted = true;
+      const [text, bad] = info(v);
+      parts.push(pv, el("p", { class: "ask-note" + (bad ? " bad" : ""), text }),
+        el("div", { class: "video-actions" },
+          el("label", { class: "button secondary small", for: "video-input" }, changeLabel),
+          btn(T("removeVideo"), removeAction, "ghost small")));
+    } else
+      parts.push(el("label", { class: "photo-add video-add", for: "video-input" }, el("span", { icon: "video" }),
+        el("small", { text: T("addVideo") })));
+    return parts;
   }
   const num = (x) => { const s = (Math.round(x * 10) / 10).toString(); return LANG === "en" ? s : s.replace(".", ","); };
   const secs = (d) => num(d);
@@ -1380,23 +1484,11 @@
       styleQ = "480p";
     }
     const v = photos.video;
-    const vparts = [el("div", { class: "ask-head" }, el("h3", { text: T("yourVideo") })),
-      el("p", { class: "photo-hint", text: T("videoHint") }),
-      el("input", { type: "file", accept: "video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm", class: "visually-hidden",
-        id: "video-input", onchange: (e) => { const f = e.target.files[0]; e.target.value = ""; pickVideo(f); } })];
-    if (v) {
-      const pv = el("video", { class: "client-video", src: v.url, controls: true, playsinline: true, preload: "metadata" });
-      pv.muted = true;
-      const short = v.dur && v.dur < 4;
-      const info = v.dur === undefined ? "…" : v.dur === null ? T("videoUnknown") : short ? T("videoShort", { n: secs(v.dur) })
-        : v.dur > 30 ? T("videoLong", { n: secs(v.dur) }) : T("videoLen", { n: secs(v.dur), mb: num(v.file.size / MB) });
-      vparts.push(pv, el("p", { class: "ask-note" + (short ? " bad" : ""), text: info }),
-        el("div", { class: "video-actions" },
-          el("label", { class: "button secondary small", for: "video-input" }, T("changeVideo")),
-          btn(T("removeVideo"), "video-remove", "ghost small")));
-    } else
-      vparts.push(el("label", { class: "photo-add video-add", for: "video-input" }, el("span", { icon: "video" }),
-        el("small", { text: T("addVideo") })));
+    const vparts = videoParts(v, T("videoHint"), (f) => pickVideo(f), "video-remove", (x) => {
+      const short = x.dur && x.dur < 4;
+      return [x.dur === undefined ? "…" : x.dur === null ? T("videoUnknown") : short ? T("videoShort", { n: secs(x.dur) })
+        : x.dur > 30 ? T("videoLong", { n: secs(x.dur) }) : T("videoLen", { n: secs(x.dur), mb: num(x.file.size / MB) }), short];
+    });
     const refs = { key: "IMG", kind: "item", preset: false, min: 0, max: 5, labels: one(T("styleRefs")),
       hint: one(T("styleRefsHint")), group: null };
     const prompt = el("textarea", { id: "style-prompt", maxlength: "500", rows: "3", placeholder: T("promptPh"),
@@ -1481,40 +1573,89 @@
     ? { desc: a.desc.slice(0, AIV_DESC_MAX), ratio: a.ratio, rs: a.ratioSet ? 1 : 0, sec: a.sec, q: a.q, order: a.order, at: a.at || Date.now() }
     : undefined;
   const aivStored = () => packAiv(aiv);
-  let aivSaveTimer = 0;
-  // клиент правит черновик: он больше не тот, что ушёл заказом, — оплата прошлого заказа его не сотрёт
-  function aivTouched(save = true) {
-    aiv.order = "";
-    aiv.rev++;                        // правка во время заливки — тоже новый черновик
-    aiv.at = Date.now();
-    clearTimeout(aivSaveTimer);
+  let saveTimer = 0;
+  // клиент правит черновик (AI-видео, с 101C и «Изменить видео»): он больше не тот, что ушёл заказом, — оплата
+  // прошлого заказа его не сотрёт
+  function touched(o, save = true) {
+    o.order = "";
+    o.rev++;                          // правка во время заливки — тоже новый черновик
+    o.at = Date.now();
+    clearTimeout(saveTimer);
     if (save) persist();
-    else aivSaveTimer = setTimeout(flushAiv, 400);  // набор текста — сохраняем, когда пауза
+    else saveTimer = setTimeout(flushSave, 400);    // набор текста — сохраняем, когда пауза
   }
-  function flushAiv() {
-    clearTimeout(aivSaveTimer);
-    aivSaveTimer = 0;
+  const aivTouched = (save = true) => touched(aiv, save);
+  function flushSave() {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
     persist();
   }
   function clearAiv() {
     aiv.photos.forEach((p) => p.url && URL.revokeObjectURL(p.url));
     aiv = freshAiv();
-    clearTimeout(aivSaveTimer);
-    aivSaveTimer = 0;
-    persist();
+    flushSave();
   }
   // окно сворачивают или закрывают — недописанное описание сохраняем сразу, не дожидаясь паузы
-  document.addEventListener("visibilitychange", () => { if (document.hidden && aivSaveTimer) flushAiv(); });
-  window.addEventListener("pagehide", () => { if (aivSaveTimer) flushAiv(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && saveTimer) flushSave(); });
+  window.addEventListener("pagehide", () => { if (saveTimer) flushSave(); });
+
+  // --- «Изменить видео» (101C): черновик — режим, качество, описание, «Мой персонаж», номер отправленного заказа — в
+  // localStorage (сроки как у AI-видео: отправленный 24 ч, неотправленный 7 дней); видео и фото — только в памяти
+  // страницы. После отказа (rejected) и отмены счёта всё на месте — «Изменить заказ»; после оплаты — стирается ---
+  const NV_DESC_MAX = 10000, NV_PHOTOS = 10;
+  const NV_VIDEO_MAX = 150 * MB, NV_PHOTO_BYTES = 40 * MB;    // видео ≤ 150 МБ (как в боте), фото вместе — как у трендов;
+  // вместе 190 МБ — в пределе сервера (видео + фото ≤ 195 МБ, тело ≤ 200 МБ, API.md 101A)
+  // образцов всего (пресет + фото) — как MAX_IMAGES бота: redraw 30, replace 8; пресет — redraw 6 картинок, replace 3
+  const NV_REFS = { redraw: 30, replace: 8 }, NV_PRESET_REFS = { redraw: 6, replace: 3 };
+  const freshNv = (mode = "redraw", q = "720p") =>
+    ({ mode, q, desc: "", preset: false, video: null, photos: [], order: "", rev: 0, at: 0 });
+  function restoreNv(o) {
+    const n = freshNv();
+    if (!o || typeof o !== "object") return n;
+    if (neuroModeOk(o.mode)) n.mode = o.mode;
+    if (QUALITIES.includes(o.q)) n.q = o.q;
+    if (typeof o.desc === "string") n.desc = o.desc.slice(0, NV_DESC_MAX);
+    n.preset = o.p === 1;
+    if (typeof o.order === "string" && ORDER_ID.test(o.order)) n.order = o.order;
+    const at = Number(o.at);
+    if (!(at > Date.now() - (n.order ? ORDER_TTL : AIV_DRAFT_TTL) && at <= Date.now() + 60000)) return freshNv(n.mode, n.q);
+    n.at = at;
+    return n;
+  }
+  let nv = restoreNv(storedNv);
+  const packNv = (n) => n.desc.trim() || n.preset || n.mode !== "redraw" || n.q !== "720p"
+    ? { mode: n.mode, q: n.q, desc: n.desc.slice(0, NV_DESC_MAX), p: n.preset ? 1 : 0, order: n.order, at: n.at || Date.now() }
+    : undefined;
+  const nvTouched = (save = true) => touched(nv, save);
+  // заказ ушёл дальше (оплачен) или его нет — видео, фото и описание не нужны; режим и качество остаются
+  function clearNv() {
+    if (nv.video) URL.revokeObjectURL(nv.video.url);
+    nv.photos.forEach((p) => p.url && URL.revokeObjectURL(p.url));
+    nv = freshNv(nv.mode, nv.q);
+    flushSave();
+  }
+  function settleNv(id, status) {
+    if (nv.order !== id) return;
+    if (status === "cancelled") {
+      nv.order = "";
+      nv.at = Date.now();
+      persist();
+    } else if (["paid", "working", "done", "review"].includes(status)) clearNv();
+  }
+  const settleDrafts = (id, status) => { settleAiv(id, status); settleNv(id, status); };
+
   // при запуске: заказ черновика уже не наш (номер забыт — старше 24 ч или не найден) — черновик не нужен; ушёл
   // дальше «к оплате» или отменён — как при опросе (settleAiv); истёкший — restoreAiv уже отбросил, здесь стираем и в
-  // хранилище. Последнее описание — только пока номер его заказа среди своих
+  // хранилище. Последнее описание — только пока номер его заказа среди своих. «Изменить видео» — так же
   {
     const mine = aiv.order && myOrders.find((o) => o.id === aiv.order);
     if (aivLast && !myOrders.some((o) => o.id === aivLast.order)) aivLast = null;
     if (aiv.order && !mine) clearAiv();
     else if (mine) settleAiv(mine.id, mine.st);
-    if ((storedAiv && !aiv.desc) || (storedLast && !aivLast)) persist();
+    const nvMine = nv.order && myOrders.find((o) => o.id === nv.order);
+    if (nv.order && !nvMine) clearNv();
+    else if (nvMine) settleNv(nvMine.id, nvMine.st);
+    if ((storedAiv && !aiv.desc) || (storedLast && !aivLast) || (storedNv && !packNv(nv))) persist();
   }
   // длина описания для счётчика: перенос строки — один знак (в поле переносы всегда \n)
   const descLen = (s) => s.replace(/\r\n/g, "\n").length;
@@ -1523,24 +1664,32 @@
   const cleanDesc = (s) => s.replace(/\r\n?/g, "\n").replace(/[\p{Zl}\p{Zp}]/gu, "\n")
     .replace(/[\p{Cf}\p{Cs}]|[^\P{Cc}\n\t]/gu, (c) => c.codePointAt(0) === 0x200d ? c : "").trim();
   const AIV_BYTES = 100 * MB;           // фото-образцы вместе (API.md 96A)
-  function aivAddPhotos(files) {
-    if (sending) return;              // идёт заливка — новое фото в неё уже не попадёт
-    aivTouched();
+  // фото-образцы в список (AI-видео, «Изменить видео»): каждое ≤ 10 МБ, не больше max штук и bytes вместе; ошибки — текстом
+  function takePhotos(list, files, max, bytes, totalKey) {
     const err = [];
     for (const f of files) {
       const byName = !f.type && /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name || "");
       if (!PHOTO_TYPES.test(f.type) && !byName) { err.push(T("errType", { name: f.name || "?" })); continue; }
       if (f.size > 10 * MB) { err.push(T("errSize", { name: f.name || "?" })); continue; }
-      if (aiv.photos.length >= AIV_PHOTOS) { err.push(T("errCount", { n: AIV_PHOTOS })); break; }
-      if (aiv.photos.reduce((s, p) => s + p.file.size, 0) + f.size > AIV_BYTES) { err.push(T("errTotalAiv")); break; }
+      if (list.length >= max) { err.push(T("errCount", { n: max })); break; }
+      if (list.reduce((s, p) => s + p.file.size, 0) + f.size > bytes) { err.push(T(totalKey)); break; }
       const preview = /^image\/(jpeg|png|webp)$/.test(f.type);
-      aiv.photos.push({ file: f, url: preview ? URL.createObjectURL(f) : "", key: Math.random().toString(36).slice(2) });
+      list.push({ file: f, url: preview ? URL.createObjectURL(f) : "", key: Math.random().toString(36).slice(2) });
     }
     render();
     if (err.length) showError(err.join(" "));
   }
+  function aivAddPhotos(files) {
+    if (sending) return;              // идёт заливка — новое фото в неё уже не попадёт
+    aivTouched();
+    takePhotos(aiv.photos, files, AIV_PHOTOS, AIV_BYTES, "errTotalAiv");
+  }
   const aivEstimate = (q = aiv.q) => LANG === "ru" && P ? aivideoPrice(aiv.ratio, q, aiv.sec) : null;
-  const aivSendLabel = () => { const p = aivEstimate(); return T("aivBtn") + (p ? ` · ≈ ${rub(p)}` : ""); };
+  const aivSendLabel = () => {
+    if (liveSent(aiv.order)) return T("sentOpen");
+    const p = aivEstimate();
+    return T("aivBtn") + (p ? ` · ≈ ${rub(p)}` : "");
+  };
   // длина ползунком: цены и подписи — на месте, без перерисовки экрана (ползунок не теряет палец)
   function aivRefresh() {
     const len = $("#aiv-len");
@@ -1614,6 +1763,7 @@
   // photo[] (API.md 96A). Перенос строки браузер шлёт как \r\n — сервер считает его одним знаком
   async function sendAiv() {
     if (sending) return;
+    if (liveSent(aiv.order)) return void nav("order/" + aiv.order);
     const desc = cleanDesc(aiv.desc);
     if (!desc) return showError(T("aivNeed"));
     if (!AIV_RATIOS.includes(aiv.ratio) || !QUALITIES.includes(aiv.q) || !(aiv.sec >= AIV_MIN && aiv.sec <= AIV_MAX)) return;
@@ -1661,6 +1811,128 @@
       persist();
     }
     nav("create/video");
+  }
+
+  // --- экран «Изменить видео» (101C): режим → видео 4–30 с ≤ 150 МБ (длина — из файла) → описание ≤ 10 000 → образец
+  // («Мой персонаж» и/или фото; у «Заменить персонажа» — обязателен) → качество → сервер (type=neuro) → проверка, цена
+  // и счёт — бот. Ничего о допуске экран не решает: проверки здесь — только чтобы не слать заведомый отказ ---
+  // видео — отдельно от фото: оно ≤ 150 МБ, фото вместе ≤ 40 МБ (takePhotos)
+  const nvBox = { max: NV_VIDEO_MAX, body: NV_VIDEO_MAX, big: "nvBig", total: "nvBig",
+    others: () => 0, owner: () => nv, get: () => nv.video, set: (v) => { nv.video = v; nvTouched(); } };
+  const nvDurOk = (d) => d >= 3.5 && d <= 30.5;      // как бот: 4–30 с с запасом полсекунды
+  const nvPhotoMax = () => Math.min(NV_PHOTOS, NV_REFS[nv.mode] - (nv.preset ? NV_PRESET_REFS[nv.mode] : 0));
+  const wordCount = (s) => s.trim() ? s.trim().split(/\s+/).length : 0;
+  const nvEstimate = (q = nv.q) => {
+    const d = nv.video && nv.video.dur;
+    return LANG === "ru" && P && d && nvDurOk(d) ? neuroPrice(d, q, nv.mode) : null;
+  };
+  // чего не хватает до кнопки: текст; " " — ждём длину видео; всё есть — ""
+  function nvMissing() {
+    const v = nv.video;
+    if (!v) return T("videoNeed");
+    if (v.dur === undefined) return " ";
+    if (v.dur !== null && v.dur < 3.5) return T("videoShort", { n: secs(v.dur) });
+    if (v.dur !== null && v.dur > 30.5) return T("nvLong", { n: secs(v.dur) });
+    if (!cleanDesc(nv.desc)) return T("nvNeedDesc");
+    if (nv.mode === "replace" && !nv.preset && !nv.photos.length) return T("nvNeedSample");
+    if (nv.photos.length > nvPhotoMax()) return T("errCount", { n: nvPhotoMax() });
+    return "";
+  }
+  function nvAddPhotos(files) {
+    if (sending) return;
+    nvTouched();
+    takePhotos(nv.photos, files, nvPhotoMax(), NV_PHOTO_BYTES, "errTotal");
+  }
+  function nvPage() {
+    const modes = T("modes"), v = nv.video, words = nv.mode === "redraw";
+    const count = () => words ? T("nvWords", { n: wordCount(nv.desc) }) : `${descLen(nv.desc)} / ${NV_DESC_MAX}`;
+    const over = () => words && wordCount(nv.desc) > 1000;
+    const area = el("textarea", { id: "nv-desc", maxlength: String(NV_DESC_MAX), rows: "5", placeholder: T("nvPh")[nv.mode],
+      "aria-labelledby": "nv-what", oninput: (e) => {
+        nv.desc = e.target.value;
+        nvTouched(false);
+        const c = $("#nv-count");
+        if (c) { c.textContent = count(); c.classList.toggle("bad", over()); }
+        updateSend();
+      } });
+    area.value = nv.desc;
+    const vparts = videoParts(v, T("nvVideoHint"), (f) => pickVideo(f, nvBox), "nv-video-remove", (x) => {
+      const short = x.dur !== undefined && x.dur !== null && x.dur < 3.5, long = !!x.dur && x.dur > 30.5;
+      return [x.dur === undefined ? "…" : x.dur === null ? T("videoUnknown") : short ? T("videoShort", { n: secs(x.dur) })
+        : long ? T("nvLong", { n: secs(x.dur) }) : T("videoLen", { n: secs(x.dur), mb: num(x.file.size / MB) }), short || long];
+    }, T("nvOther"));          // «Изменить видео» здесь — название услуги и главная кнопка, файл меняет «Другое видео»
+    const max = nvPhotoMax(), input = "nv-photo-input";
+    const preset = el("div", { class: "edit-option nv-preset" + (nv.preset ? " selected" : "") },
+      el("button", { class: "option-title", type: "button", "aria-pressed": String(nv.preset), data: { action: "nv-preset" } },
+        el("span", {}, T("nvPreset"), el("small", { class: "opt-hint", text: T("nvPresetHint") })),
+        el("i", { class: "switch", "aria-hidden": "true" })));
+    const est = nvEstimate();
+    const send = btn(nvSendLabel(), "send-nv", "primary full", {}, "spark");
+    send.id = "send-photos";
+    queueMicrotask(updateSend);
+    return el("div", { class: "photo-page nv-page" }, pageTopEl(T("kinds").neuro.replace(/^\S+\s/, "")),
+      el("div", { class: "field" }, el("span", { class: "field-label", text: T("modeLabel") }),
+        el("div", { class: "choice-row" }, NEURO_MODES.filter(neuroModeOk).map((m) => el("button", {
+          class: "choice" + (m === nv.mode ? " selected" : ""), type: "button", "aria-pressed": String(m === nv.mode),
+          data: { action: "nv-mode", value: m } }, modes[m][0]))),
+        el("p", { class: "mode-hint", "aria-live": "polite", text: modes[nv.mode][1] })),
+      el("section", { class: "ask-block" }, vparts),
+      el("section", { class: "ask-block" },
+        el("div", { class: "ask-head" }, el("h3", { id: "nv-what", text: T("nvWhat") }),
+          el("span", { class: "ask-count" + (over() ? " bad" : ""), id: "nv-count", text: count() })), area,
+        el("p", { class: "aiv-hints" }, T("nvHints").map((s) => el("span", { text: s })))),
+      el("section", { class: "ask-block" },
+        el("div", { class: "ask-head" }, el("h3", { text: T("nvSample") }),
+          el("span", { class: "ask-count", text: `${nv.photos.length} / ${max}` })),
+        el("p", { class: "photo-hint", text: T("nvSampleHint")[nv.mode].replace("{n}", max) }), preset,
+        nv.preset ? el("button", { class: "text-button", type: "button", data: { action: "make-preset", id: "" } }, T("nvNoPreset")) : null,
+        el("input", { type: "file", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", multiple: true,
+          class: "visually-hidden", id: input, onchange: (e) => { nvAddPhotos([...e.target.files]); e.target.value = ""; } }),
+        el("div", { class: "photo-grid" }, nv.photos.map((p, i) => thumbEl(p, i, "nv-photo-remove", true)),
+          nv.photos.length < max ? addTile(input) : null)),
+      el("div", { class: "field" }, el("span", { class: "field-label", text: T("quality") }),
+        el("div", { class: "q-row" }, QUALITIES.map((k) => {
+          const p = nvEstimate(k);
+          return el("button", { class: "q-choice" + (k === nv.q ? " selected" : ""), type: "button",
+            "aria-pressed": String(k === nv.q), data: { action: "nv-q", value: k } },
+          el("strong", { text: T("q")[k] }), el("small", { text: p ? "≈ " + rub(p) : k }));
+        }))),
+      est ? el("div", { class: "price-card" }, el("span", { text: T("nvName") }), el("strong", { text: "≈ " + rub(est) }),
+        el("small", { text: T("nvNote") })) : el("div", { class: "quote-hint", icon: "info" }, T("priceNone")),
+      el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
+      el("p", { class: "ask-note nv-need", id: "nv-need" }),
+      el("div", { id: "flow-error", class: "form-error", role: "alert" }),
+      el("div", { class: "workflow-actions" }, send));
+  }
+  // заказ «Изменить видео»: type (первым), mode, quality, desc, use_preset, lang, photo[] (до видео — небольшие, сервер
+  // отбросит неверное фото раньше 150 МБ видео), video — API.md 101A. Всё тело ≤ 200 МБ: видео ≤ 150 + фото ≤ 40 (≤ 195 до
+  // отправки, как просит сервер); срок заливки у сервера — тот же, что таймаут postOrder (3 мин + 1 с на 128 КБ, ≤ 30 мин)
+  const nvSendLabel = () => {
+    if (liveSent(nv.order)) return T("sentOpen");
+    const est = nvEstimate();
+    return T("nvBtn") + (est ? ` · ≈ ${rub(est)}` : "");
+  };
+  async function sendNv() {
+    if (sending) return;
+    if (liveSent(nv.order)) return void nav("order/" + nv.order);
+    const miss = nvMissing();
+    if (miss) return showError(miss.trim());
+    const form = new FormData();
+    form.append("type", "neuro");
+    form.append("mode", nv.mode);
+    form.append("quality", nv.q);
+    form.append("desc", cleanDesc(nv.desc));
+    form.append("use_preset", nv.preset ? "1" : "0");
+    form.append("lang", LANG);
+    nv.photos.forEach((p, i) => form.append("photo[]", p.file, `photo${i + 1}`));
+    form.append("video", nv.video.file, "video");
+    const mine = nv, rev = nv.rev;
+    const id = await submit(form, true, { kind: "neuro", trend: "", preset: nv.preset ? 1 : 0 });
+    if (id && nv === mine && nv.rev === rev) {
+      nv.order = id;                  // черновик — этот заказ: его оплата сотрёт видео, фото и описание
+      nv.at = Date.now();
+      persist();
+    }
   }
 
   // --- экран заказа (91): опрос раз в 2,5 с, пока окно видно; всё о деньгах — из ответа сервера ---
@@ -1727,7 +1999,7 @@
         view.data = data;
         const mine = myOrders.find((o) => o.id === id);
         if (mine && mine.st !== data.status) { mine.st = data.status; persist(); }
-        settleAiv(id, data.status);
+        settleDrafts(id, data.status);
       }
       if (before !== JSON.stringify(view.data) + view.offline + payWaiting(id, view.data) + !!view.softenAt) render();
       if (!data || LIVE.has(data.status)) schedulePoll();
@@ -1737,6 +2009,7 @@
         view.gone = true;
         forgetOrder(id);
         if (aiv.order === id) clearAiv();            // заказа больше нет — и черновика, ушедшего им
+        if (nv.order === id) clearNv();
         if (aivLast && aivLast.order === id) { aivLast = null; persist(); }   // и его последнего описания
         render();
         return;
@@ -1776,7 +2049,9 @@
     }
     const meta = myOrders.find((o) => o.id === id) || { kind: "", trend: "", preset: 0 };
     const preset = meta.kind === "preset", style = meta.kind === "style", aivideo = meta.kind === "aivideo";
-    const checking = preset ? T("checkingPreset") : style ? T("checkingVideo") : aivideo ? T("checkingDesc") : T("checking");
+    const neuro = meta.kind === "neuro", described = aivideo || neuro;     // 101C: заказ с описанием — и «Изменить видео»
+    const checking = preset ? T("checkingPreset") : style ? T("checkingVideo") : aivideo ? T("checkingDesc")
+      : neuro ? T("checkingNeuro") : T("checking");
     const d = view.data;
     const waiting = payWaiting(id, d);                // оплату открывали — ждём подтверждения бота, не отменяем
     const box = el("div", { class: "status-card" });
@@ -1795,7 +2070,22 @@
       // 97: клиент нажал «Смягчить» — ждём новый счёт от бота; ссылок старого счёта не показываем
       head(T("softening"), true);
       box.append(el("p", { class: "status-message", text: T("softeningText") }));
-      if (aivideo && !waiting) actions.append(btn(T("changeDesc"), "edit-desc", "ghost full", {}, "sliders"));
+      if (described && !waiting) actions.append(btn(T("changeDesc"), "edit-desc", "ghost full", {}, "sliders"));
+    } else if (d.status === "quoted" && neuro && !d.price_rub && !d.price_stars && !d.rub_url && !d.stars_link) {
+      // доделка 2 (контракт 101B): описание «Изменить видео» нельзя отправить как есть — бот прислал quoted без цены и
+      // ссылок, причину в message и soften. Платить не за что: «Смягчить» (новый счёт) или «Изменить описание» — без
+      // «Оставить как есть» и «Оплатите в боте»
+      head(T("nvFixTitle"));
+      msg();
+      // soften нет (смягчение уже было, просьбу сняли по сроку) — только причина и «Изменить описание»
+      if (d.soften && !view.softenKept) {
+        const what = d.soften.risks.join(", ");
+        box.append(el("div", { class: "soften-block" },
+          what ? el("p", { class: "soften-risk", text: T("softenRisk", { what }) }) : null,
+          el("p", { class: "soften-offer", text: d.soften.offer }),
+          el("div", { class: "soften-actions" }, btn(T("softenBtn"), "soften", "secondary small"))));
+      }
+      actions.append(btn(T("changeDesc"), "fix-desc", d.soften && !view.softenKept ? "ghost full" : "primary full", {}, "sliders"));
     } else if (d.status === "quoted") {
       // «Заказ №N · сумма»: номер — order_no бота, сумма — из ответа (₽ только ru); номера нет — только сумма
       const sum = LANG === "ru" && d.price_rub ? rub(d.price_rub) : d.price_stars ? stars(d.price_stars) : "";
@@ -1804,7 +2094,7 @@
       msg();
       if (waiting) box.append(el("p", { class: "status-note", text: T("payPending") }));
       // 97: бот видит риск отказа нейросети — «Смягчить» (новый счёт) или «Оставить как есть»; оплата видна сразу
-      if (aivideo && d.soften && !view.softenKept && !view.paying && !waiting) {
+      if (described && d.soften && !view.softenKept && !view.paying && !waiting) {
         const what = d.soften.risks.join(", ");
         box.append(el("div", { class: "soften-block" },
           el("p", { class: "soften-risk", text: what ? T("softenRisk", { what }) : T("softenRiskAny") }),
@@ -1823,8 +2113,8 @@
         actions.append(btn(T("openBot"), "open-bot", "secondary full", {}, "send"));
       }
       // 97C: описание можно поправить до оплаты — текущий счёт отменяем (два живых счёта — две оплаты), черновик
-      // остаётся на экране «Создать видео» (новый заказ)
-      if (aivideo && !waiting) actions.append(btn(T("changeDesc"), "edit-desc", "ghost full", {}, "sliders"));
+      // остаётся на экране «Создать видео» или «Изменить видео» (новый заказ)
+      if (described && !waiting) actions.append(btn(T("changeDesc"), "edit-desc", "ghost full", {}, "sliders"));
     } else if (d.status === "needs_consent") {
       head(T("consent"));
       msg();
@@ -1834,6 +2124,8 @@
       msg();
       // описание не прошло правила (96) — текст причины от бота и правка: описание и фото — в черновике на экране
       if (aivideo) actions.append(btn(T("changeDesc"), "nav", "primary full", { to: "create/video" }, "sliders"));
+      // 101C: отказ — видео, описание или образец: всё в черновике на экране «Изменить видео»
+      else if (neuro) actions.append(btn(T("nvFix"), "nav", "primary full", { to: "edit/neuro" }, "sliders"));
       else if (preset) actions.append(btn(T("changePhoto"), "make-preset", "primary full", { id: meta.trend }, "camera"));
       else if (style && meta.trend) actions.append(btn(T("changeVideo"), "nav", "primary full", { to: "style/" + meta.trend }, "video"));
       else if (meta.trend) {
@@ -1871,10 +2163,12 @@
         actions.append(btn(T("backToTrend"), "back-to-trend", "primary full", { id: meta.trend }, "arrow"));
       else if (style) actions.append(btn(T("toStyles"), "nav", "ghost full", { to: "styles" }));
       else if (aivideo) actions.append(btn(T("createMore"), "create-more", "ghost full", { id }));
+      else if (neuro) actions.append(btn(T("nvMore"), "nav", "ghost full", { to: "edit/neuro" }));
       else actions.append(btn(T("toTrends"), "nav", preset ? "primary full" : "ghost full", { to: "trends" }));
     } else if (d.status === "cancelled") {
       head(T("cancelled"));
       actions.append(aivideo ? btn(T("aivTitle"), "nav", "primary full", { to: "create/video" })
+        : neuro ? btn(T("nvBtn"), "nav", "primary full", { to: "edit/neuro" })
         : btn(T("toTrends"), "nav", "primary full", { to: "trends" }));
     }
     if (view.offline) box.append(el("p", { class: "status-note offline", text: T("retry") }));
@@ -1945,7 +2239,7 @@
       else if (view.id === id) view.data = { ...(view.data || {}), status: "cancelled" };
       const mine = myOrders.find((o) => o.id === id);
       if (mine) { mine.st = "cancelled"; persist(); }
-      settleAiv(id, "cancelled");
+      settleDrafts(id, "cancelled");
       stopPoll();
       if (then && view.id === id) nav(then);
       else render();
@@ -1979,7 +2273,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
   // последним и тёмным
   function editLanding() {
     const [n1, n2] = T("svcNeuro"), [m1, m2] = T("svcMontage"), [s1, s2] = T("tileStyle");
-    return `<div class="editor-landing">${pageTop(esc(T("editTitle")), esc(T("editSub")))}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="neuro">${icon("spark")}<div><span>${esc(n1)}</span><small>${esc(n2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>🎨 ${esc(s1)}</span><small>${esc(s2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="montage">${icon("scissors")}<div><span>${esc(m1)}</span><small>${esc(m2)}</small></div>${icon("arrow")}</button></div><p class="bottom-note">${esc(T("editNote"))}</p></div>`;
+    return `<div class="editor-landing">${pageTop(esc(T("editTitle")), esc(T("editSub")))}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="neuro">${icon("spark")}<div><span>${esc(n1)}</span><small>${esc(n2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>🎨 ${esc(s1)}</span><small>${esc(s2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="montage">${icon("scissors")}<div><span>${esc(m1)}</span><small>${esc(m2)}</small></div>${icon("arrow")}</button></div><p class="bottom-note">${esc(T(NEURO_APP_ON ? "editNoteApp" : "editNote"))}</p></div>`;
   }
   // 96C: вкладка «Создать» — AI-видео и свой персонаж (в приложении); «Картинки» — на стадии разработки (владелец
   // 13.10: в бота не уводим; пометка «скоро», касание — короткое сообщение). Код w1-i бот по-прежнему понимает
@@ -2103,6 +2397,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       out = styleById(r.slice(6)) ? stylePage(styleById(r.slice(6))) : stylesStateEl(false) || stylesPage();
     else if (r.startsWith("order/") && ORDER_ID.test(r.slice(6))) out = orderPage(r.slice(6));
     else if (r === "edit") out = editLanding();
+    else if (r === "edit/neuro" && NEURO_APP_ON) out = nvPage();
     else if (FLOW[r]) out = flowPage(FLOW[r]);
     else if (r === "profile") out = profile();
     else if (r === "drafts") out = draftsPage();
@@ -2238,6 +2533,23 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (a === "soften") softenOrder();
     else if (a === "soften-keep") { view.softenKept = true; render(); }
     else if (a === "create-more" && AIVIDEO_ON) createMore(b.dataset.id);
+    else if (a === "nv-mode" && neuroModeOk(v) && !sending) { nv.mode = v; nvTouched(); render(); }
+    else if (a === "nv-q" && QUALITIES.includes(v) && !sending) { nv.q = v; nvTouched(); render(); }
+    else if (a === "nv-preset" && !sending) { nv.preset = !nv.preset; nvTouched(); render(); }
+    else if (a === "nv-video-remove" && !sending) {
+      if (nv.video) URL.revokeObjectURL(nv.video.url);
+      nv.video = null;
+      nvTouched();
+      render();
+    } else if (a === "nv-photo-remove" && !sending) {
+      const p = nv.photos.find((x) => x.key === b.dataset.key);
+      if (p) {
+        if (p.url) URL.revokeObjectURL(p.url);
+        nv.photos = nv.photos.filter((x) => x !== p);
+        nvTouched();
+        render();
+      }
+    } else if (a === "send-nv" && NEURO_APP_ON) sendNv();
     else if (a === "back-to-trend") { presetPick = b.dataset.id; nav("who/" + b.dataset.id); }
     else if (a === "ask-mode" && !sending) {
       const t = trendById(route().slice(4)), blk = t && askFor(t).find((x) => x.preset);
@@ -2277,11 +2589,17 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (a === "cancel-order")
       showModal(esc(T("cancelAsk")), `${view.data && view.data.status === "quoted" ? `<p class="sheet-text">${esc(T("cancelPaidNote"))}</p>` : ""}${button(esc(T("cancelYes")), "confirm-cancel", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
     else if (a === "confirm-cancel") cancelOrder();
-    else if (a === "edit-desc")
-      // черновик — не описание этого счёта (правили после отправки или его уже нет): говорим, что откроется
-      showModal(esc(T("changeDesc")), `<p class="sheet-text">${esc(T("editDescAsk"))}</p>${aiv.order === view.id ? ""
-        : `<p class="sheet-text">${esc(T(aiv.desc.trim() ? "editDescOther" : "editDescLost"))}</p>`}<p class="sheet-text">${esc(T("cancelPaidNote"))}</p>${button(esc(T("editDescYes")), "confirm-edit-desc", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
-    else if (a === "confirm-edit-desc") cancelOrder("create/video");
+    else if (a === "edit-desc") {
+      // черновик — не описание этого счёта (правили после отправки или его уже нет): говорим, что откроется.
+      // 101C: у «Изменить видео» — свой черновик (nv)
+      const box = orderKind(view.id) === "neuro" ? nv : aiv;
+      showModal(esc(T("changeDesc")), `<p class="sheet-text">${esc(T("editDescAsk"))}</p>${box.order === view.id ? ""
+        : `<p class="sheet-text">${esc(T(box.desc.trim() ? "editDescOther" : "editDescLost"))}</p>`}${box === nv && !nv.video
+        ? `<p class="sheet-text">${esc(T("nvFilesLost"))}</p>` : ""}<p class="sheet-text">${esc(T("cancelPaidNote"))}</p>${button(esc(T("editDescYes")), "confirm-edit-desc", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
+    } else if (a === "fix-desc") {           // счёта без цены нет — отменяем без окна; видео и фото нет — скажем
+      if (!nv.video) toast(T("nvFilesLost"));
+      cancelOrder("edit/neuro");
+    } else if (a === "confirm-edit-desc") cancelOrder(orderKind(view.id) === "neuro" ? "edit/neuro" : "create/video");
     else if (a === "save-result") {
       const d = view.data;
       if (d && resultOk(d.result_url)) {
@@ -2294,7 +2612,11 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       if (d && resultOk(d.result_url)) {
         try { tg.shareToStory(d.result_url); } catch { toast(T("shareFail")); }
       }
-    } else if (a === "start") { draft = newDraft(b.dataset.kind); nav("edit/" + b.dataset.kind); }
+    } else if (a === "start") {
+      if (b.dataset.kind === "neuro" && NEURO_APP_ON) return void nav("edit/neuro");    // 101C: свой черновик (nv)
+      draft = newDraft(b.dataset.kind);
+      nav("edit/" + b.dataset.kind);
+    }
     else if (a === "resume") { const d = drafts.find((x) => x.id === b.dataset.id); if (d) openDraft(d); }
     else if (a === "drop") { dropDraft(b.dataset.id); render(); toast(T("draftDropped")); }
     else if (draft && a === "opt") {
@@ -2307,13 +2629,17 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (draft && a === "style" && has(STYLE_CODES, v)) { draft.style = v; changed(); }
     else if (a === "order") order();
     else if (a === "help")
-      showModal("Как это работает", `${monti("m")}<ul class="sheet-list"><li><strong>Тренды, стили, AI-видео и свой персонаж — прямо здесь</strong>Выберите ролик или стиль, опишите видео или добавьте фото. Цену и оплату покажем в приложении, готовое придёт сюда и в чат бота @${BOT}.</li><li><strong>«Изменить видео» и «Монтаж» — в боте</strong>Соберите заказ, кнопка откроет чат с ботом с вашим выбором. Видео пришлёте там.</li><li><strong>Оплата</strong>Цену всегда считает бот и показывает до оплаты.</li></ul>`);
+      showModal("Как это работает", `${monti("m")}<ul class="sheet-list"><li><strong>Тренды, стили, ${NEURO_APP_ON ? "«Изменить видео», " : ""}AI-видео и свой персонаж — прямо здесь</strong>Выберите ролик или стиль, загрузите видео, опишите его или добавьте фото. Цену и оплату покажем в приложении, готовое придёт сюда и в чат бота @${BOT}.</li><li><strong>${NEURO_APP_ON ? "«Монтаж» — в боте" : "«Изменить видео» и «Монтаж» — в боте"}</strong>Соберите заказ, кнопка откроет чат с ботом с вашим выбором. Видео пришлёте там.</li><li><strong>Оплата</strong>Цену всегда считает бот и показывает до оплаты.</li></ul>`);
     else if (a === "about")
-      showModal(esc(T("aboutTitle")), `<ul class="sheet-list">${T("about").map(([h, t]) => `<li><strong>${esc(h)}</strong>${esc(t)}</li>`).join("")}</ul>`);
+      // 101C: «Изменить видео» — через сервер (свой черновик), в бота кодом уходит только «Монтаж»
+      showModal(esc(T("aboutTitle")), `<ul class="sheet-list">${(NEURO_APP_ON ? [...T("about").slice(0, 3), T("aboutNv"), T("aboutBot")]
+        : T("about")).map(([h, t]) => `<li><strong>${esc(h)}</strong>${esc(t)}</li>`).join("")}</ul>`);
     else if (a === "reset")
       showModal(esc(T("resetTitle")), `<p>${esc(T("resetText"))}</p>${button(esc(T("resetYes")), "confirm-reset", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
     else if (a === "confirm-reset") {
       drafts = []; myOrders = []; draft = null; aivLast = null;
+      clearNv();
+      nv = freshNv();                 // и режим с качеством «Изменить видео» (101C)
       clearAiv();
       try { localStorage.removeItem(storageKey); } catch {}
       closeModal(); render(); toast(T("resetDone"));

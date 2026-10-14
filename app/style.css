@@ -3589,7 +3589,8 @@ a.button {
   font-size: 11px;
   pointer-events: none;
 }
-.aiv-page textarea {
+.aiv-page textarea,
+.nv-page textarea {
   width: 100%;
   min-height: 120px;
   padding: 12px;
@@ -3684,4 +3685,32 @@ a.button {
 }
 .soften-actions .button {
   flex: 1 1 140px;
+}
+
+/* промпт 101C: «Изменить видео» в приложении — вид прежний, только поля */
+.nv-page .field {
+  margin-bottom: 14px;
+}
+.nv-preset {
+  margin: 0 0 6px;
+  border-top: 1px solid #303030;
+}
+.nv-preset .option-title {
+  padding: 12px 0;
+}
+.nv-preset + .text-button {
+  margin: 0 0 12px;
+}
+.ask-count.bad {
+  color: #f0b45a;
+}
+.nv-need:empty {
+  display: none;
+}
+.nv-need {
+  margin: 10px 0 0;
+}
+/* плитка «Выбрать видео» — по ширине, высотой 110 px (92C): .photo-add (96C) ниже по файлу перебивал aspect-ratio */
+.ask-block .video-add {
+  aspect-ratio: auto;
 }

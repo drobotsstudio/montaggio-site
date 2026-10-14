@@ -153,9 +153,9 @@ small {
 }
 .brand-mark {
   display: block;
-  width: 41px;
+  width: 47px;
   height: 21px;
-  background: url("assets/brand-original.webp") -25px -20px/181px 60px no-repeat;
+  background: url("assets/brand-original.webp") -27px -20px/181px 60px no-repeat;
   flex: none;
 }
 .demo-badge {
@@ -1615,9 +1615,9 @@ small {
     font-size: 24px;
   }
   .brand-mark {
-    width: 34px;
+    width: 40px;
     height: 18px;
-    background-position: -21px -16px;
+    background-position: -22px -16px;
     background-size: 151px 50px;
   }
   .demo-badge {

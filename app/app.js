@@ -1,4 +1,4 @@
-/* Mini App Montaggio. Монтаж и Нейромонтаж собираются здесь и оформляются в боте кодом заказа ?start=w1-….
+/* Mini App Montaggio. «Монтаж» и «Изменить видео» (бывший «Нейромонтаж») собираются здесь и оформляются в боте кодом заказа ?start=w1-….
    Тренды, стили, AI-видео и свой персонаж (пресет) — заказ с фото, видео или описанием, оплата и результат — внутри
    приложения через сервер заказов; «Картинки» — пока «скоро» (владелец 13.10).
    Приложение ничего не решает о деньгах: цену, номер заказа и ссылки оплаты показывает из ответа сервера, который
@@ -12,8 +12,11 @@
   // Telegram: скрипт telegram.org грузится async (медленный или недоступный не держит страницу) — приложение сразу
   // работает витриной со ссылкой на бота, а поведение Telegram подключает attachTelegram(), когда скрипт появился.
   // Признак «внутри Telegram» — платформа (у кнопки клавиатуры initData пустая): из скрипта или из параметров запуска
-  // в адресе (#tgWebAppPlatform=…, их Telegram ставит после #; запоминаем до первой смены # маршрутом)
-  const START_HASH = location.hash.startsWith("#/") ? "" : location.hash.slice(1);
+  // в адресе (#tgWebAppPlatform=…, их Telegram ставит после #; запоминаем до первой смены # маршрутом). Бот (89)
+  // открывает и сразу экран: MINIAPP_URL#/trends — тогда Telegram дописывает параметры после маршрута:
+  // «#/trends&tgWebAppData=…» или «#/trends?tgWebAppData=…»; маршрут — до первого «&» или «?»
+  const HASH_ROUTE = /^#\/([^&?]*)[&?](.*)$/.exec(location.hash);
+  const START_HASH = HASH_ROUTE ? HASH_ROUTE[2] : location.hash.startsWith("#/") ? "" : location.hash.slice(1);
   const LAUNCH_PLATFORM = new URLSearchParams(START_HASH).get("tgWebAppPlatform") || "";
   let tg = null;
   let inTelegram = false;
@@ -145,7 +148,7 @@
       createTitle: "Создать", createSub: "Что сделаем с нуля?",
       cAiv: ["🎥 AI-видео", "Опишите — нейросеть снимет видео"],
       cImg: ["🖼 Картинки", "Создать по описанию, изменить фото, убрать фон"],
-      cChar: ["🧩 Свой персонаж", "Лист персонажа по вашим фото — для трендов и нейромонтажа"],
+      cChar: ["🧩 Свой персонаж", "Лист персонажа по вашим фото — для трендов и «Изменить видео»"],
       soon: "скоро", imgSoon: "🖼 Картинки — на стадии разработки. Скоро!",
       ownStory: ["✍️ Свой сюжет", "Опишите, что снять"],
       aivTitle: "Создать видео", aivSub: "Нейросеть снимет видео по вашему описанию",
@@ -164,9 +167,61 @@
         "Всё, что запрещено законом и правилами Telegram."],
       rulesHow: "Перед ценой описание проверяется по этим правилам. Нарушение — объясним, что нельзя, и попросим переписать; платить ничего не нужно.",
       checkingDesc: "Проверяем описание…", changeDesc: "Изменить описание", orderAiv: "AI-видео", createMore: "Создать ещё",
-      charTitle: "Свой персонаж", charSub: "Лист персонажа по вашим фото — нейросеть держит по нему лицо и фигуру в трендах и нейромонтаже.",
+      charTitle: "Свой персонаж", charSub: "Лист персонажа по вашим фото — нейросеть держит по нему лицо и фигуру в трендах и «Изменить видео».",
       charPhotos: "Ваши фото · 1–3", charStyle: "Стиль", charBtn: "Сделать персонажа", charName: "🧩 Пресет персонажа",
       styleNames: { real: "📷 Реализм", cartoon: "🎨 Мультфильм", anime: "🌸 Аниме", "3d": "🧸 3D" },
+      // 97C: подсказки под «Что снять?», «Смягчить» на экране счёта
+      aivHints: ["Надпись в кадре — в кавычках, до 30 знаков · текст по-английски уйдёт слово в слово",
+        "Фото 1, 2… — в описании можно писать «как на Фото 1» · видео — со звуком"],
+      softenRisk: "Нейросеть может отклонить: {what}.", softenRiskAny: "Нейросеть может отклонить это описание.",
+      softenBtn: "🪶 Смягчить", softenKeep: "Оставить как есть", softening: "Смягчаем…",
+      softeningText: "Перепишем описание — новый счёт появится здесь.", softenOnce: "Смягчить можно только один раз.",
+      // 97C (ревью): окно «Данные» — честно, что лежит на устройстве
+      editDescAsk: "Текущий счёт отменим — изменить описание?", editDescYes: "Отменить счёт и изменить",
+      draftMontage: "{n} видео · до {t}", draftTag: "черновик",
+      aboutTitle: "Данные",
+      about: [["Что хранится здесь", "Черновики и номера ваших заказов — только на этом устройстве."],
+        ["AI-видео", "Черновик описания и настроек AI-видео хранится только на этом устройстве — до 7 дней; последнее оплаченное описание — 24 часа. «Стереть данные» удаляет всё."],
+        ["Фото, видео и описания для заказа", "Уходят в Montaggio только для вашего заказа, сроки хранения — в политике конфиденциальности. Фото и видео в браузере не остаются."],
+        ["«Изменить видео» и «Монтаж»", "В бота уходит только ваш выбор — коротким кодом в ссылке."]],
+      // 97C доделка 2: оплата открыта — «Изменить описание» и «Отменить» не показываем; профиль и черновики — ru/en/it
+      payPending: "Проверяем оплату… Если уже оплатили — не отменяйте заказ, оплата дойдёт.",
+      cancelPaidNote: "Если уже оплатили — не отменяйте, оплата дойдёт.",
+      editDescOther: "Откроется ваш текущий черновик — не описание этого счёта.",
+      editDescLost: "Описание этого счёта на устройстве не сохранилось — его придётся ввести заново.",
+      contTitle: "Продолжить", savedHere: "Сохранено здесь", draftsTitle: "Черновики",
+      draftsSub: "Не оформленные заказы — на этом устройстве.", draftDrop: "Удалить черновик", draftDropped: "Черновик удалён.",
+      noDrafts: "Черновиков нет", noDraftsText: "Начатый заказ сохранится здесь, пока вы не оформите его в боте.",
+      profileTitle: "Ваше пространство", profileSub: "Черновики — только на этом устройстве",
+      profileRows: [["Черновики", "{n} не оформлено"], ["Как это работает", "Приложение, бот и оплата"], ["Данные", "Что хранится и что куда уходит"]],
+      resetLink: "Стереть данные на этом устройстве", resetTitle: "Стереть данные?",
+      resetText: "Удалятся черновики, описание AI-видео и номера заказов на этом устройстве.", resetYes: "Стереть",
+      resetDone: "Данные на этом устройстве стёрты.",
+      // 97C: вкладка «Изменить» по правкам партнёра (12.10): «Изменить видео» (нейросеть) — первым, «Монтаж» — последним
+      editTitle: "Изменить видео", editSub: "Что сделать с вашим видео?",
+      svcNeuro: ["🪄 Изменить видео", "Новый стиль, фон или персонаж — нейросеть перерисует ваше видео"],
+      svcMontage: ["🎬 Монтаж", "Вырежем паузы, слова-паразиты и дубли, почистим голос"],
+      editNote: "«Изменить видео» и «Монтаж» — видео пришлёте в чате с ботом. «Сменить стиль» — видео загружается прямо здесь.",
+      kinds: { montage: "🎬 Монтаж", neuro: "🪄 Изменить видео" },
+      modeLabel: "Режим",
+      modes: {
+        redraw: ["🎨 Изменить образ", "Измените одежду, макияж и другие детали образа, сохранив самого человека. Подходит для разговорных видео и съёмки в полный рост."],
+        replace: ["🔁 Заменить персонажа", "Замените человека или объект в видео либо перенесите на человека другую внешность. Опишите, кого и как изменить, и добавьте образец — картинку или пресет. Можно заменить одного персонажа или нескольких."],
+        motion: ["🕺 Перенос движения", "Персонаж с картинки повторит ваши движения и жесты."],
+      },
+      nLen: "Длина видео", nLenHint: "Выберите примерную длительность вашего видео",
+      montageTitle: "Монтаж",
+      montageDesc: "Уберём паузы, слова-паразиты и неудачные дубли, очистим звук — речь станет связнее, а видео короче. Внешность и изображение сохранятся.",
+      montagePick: "Выберите, что нужно улучшить",
+      montageItems: { 1: ["Вырезать паузы", "Тишина между фразами — долой."], 2: ["Слова-паразиты", "«ээ», «ну», «как бы»."],
+        3: ["Дубли и оговорки", "Без потери смысла."], 14: ["Чистый голос", "Убрать шум, выровнять громкость."] },
+      mLen: "Длина видео — примерно", mUpTo: "до {t}", mTotal: "Всех видео вместе — до 3 минут.", mClips: "Сколько видео склеить",
+      fewer: "Меньше", moreClips: "Больше", dur: ["{s} сек", "{m} мин", "{m} мин {s} сек"],
+      stepsMontage: ["Пришлите {what} в чат с ботом.", "Бот проверит длину и покажет точную цену.", "Оплата — в боте, потом готовое видео придёт туда же."],
+      sendOne: "видео", sendMany: "{n} видео одним альбомом",
+      stepsNeuro: ["Бот откроет выбранный режим — пришлите видео и, если режим просит, промпт или образец.", "Точная цена — в карточке после видео.", "Оплата — в боте, результат придёт туда же."],
+      priceNone: "Точную цену бот покажет до оплаты.", priceMontage: "Бот проверит длину и покажет точную цену до оплаты.",
+      priceNeuro: "Примерная цена. Точная — в боте перед оплатой.", toBot: "Оформить в боте", needOpt: "Оставьте хотя бы один пункт монтажа.",
     },
     en: {
       nav: ["Home", "Trends", "Edit", "Create", "Profile"],
@@ -229,7 +284,7 @@
       createTitle: "Create", createSub: "What shall we make from scratch?",
       cAiv: ["🎥 AI video", "Describe it — the AI will shoot the video"],
       cImg: ["🖼 Images", "Create from a description, edit a photo, remove the background"],
-      cChar: ["🧩 Your character", "A character sheet from your photos — for trends and AI video editing"],
+      cChar: ["🧩 Your character", "A character sheet from your photos — for trends and “Change the video”"],
       soon: "soon", imgSoon: "🖼 Images — in development. Coming soon!",
       ownStory: ["✍️ Your own story", "Describe what to shoot"],
       aivTitle: "Create a video", aivSub: "The AI will shoot a video from your description",
@@ -248,9 +303,57 @@
         "Anything prohibited by law and Telegram rules."],
       rulesHow: "Before the price, the description is checked against these rules. If something breaks them, we'll explain what's not allowed and ask you to rewrite it; you pay nothing.",
       checkingDesc: "Checking the description…", changeDesc: "Edit the description", orderAiv: "AI video", createMore: "Create another",
-      charTitle: "Your character", charSub: "A character sheet from your photos — the AI keeps the face and figure from it in trends and AI video editing.",
+      charTitle: "Your character", charSub: "A character sheet from your photos — the AI keeps the face and figure from it in trends and “Change the video”.",
       charPhotos: "Your photos · 1–3", charStyle: "Style", charBtn: "Make the character", charName: "🧩 Character preset",
       styleNames: { real: "📷 Realism", cartoon: "🎨 Cartoon", anime: "🌸 Anime", "3d": "🧸 3D" },
+      aivHints: ["Text on screen — in quotes, up to 30 characters · an English description goes word for word",
+        "Photo 1, 2… — you can write “like in Photo 1” · the video comes with sound"],
+      softenRisk: "The AI may reject: {what}.", softenRiskAny: "The AI may reject this description.",
+      softenBtn: "🪶 Soften", softenKeep: "Keep as is", softening: "Softening…",
+      softeningText: "We'll rewrite the description — the new bill will appear here.", softenOnce: "It can only be softened once.",
+      editDescAsk: "We'll cancel the current bill — edit the description?", editDescYes: "Cancel the bill and edit",
+      draftMontage: "{n} video · up to {t}", draftTag: "draft",
+      aboutTitle: "Data",
+      about: [["What is stored here", "Drafts and your order numbers — only on this device."],
+        ["AI video", "The draft of the AI video description and settings is kept only on this device — up to 7 days; the last paid description — 24 hours. “Erase data” deletes everything."],
+        ["Photos, videos and descriptions for an order", "They go to Montaggio only for your order; storage periods are in the privacy policy. Photos and videos don't stay in the browser."],
+        ["“Change the video” and “Editing”", "Only your choice goes to the bot — as a short code in the link."]],
+      payPending: "Checking the payment… If you've already paid, don't cancel the order — the payment will come through.",
+      cancelPaidNote: "If you've already paid, don't cancel — the payment will come through.",
+      editDescOther: "Your current draft will open — not the description of this bill.",
+      editDescLost: "The description of this bill isn't saved on this device — you'll need to enter it again.",
+      contTitle: "Continue", savedHere: "Saved here", draftsTitle: "Drafts",
+      draftsSub: "Orders not placed yet — on this device.", draftDrop: "Delete draft", draftDropped: "Draft deleted.",
+      noDrafts: "No drafts", noDraftsText: "An order you start will be saved here until you place it in the bot.",
+      profileTitle: "Your space", profileSub: "Drafts — only on this device",
+      profileRows: [["Drafts", "{n} not placed"], ["How it works", "The app, the bot and payment"], ["Data", "What is stored and where it goes"]],
+      resetLink: "Erase data on this device", resetTitle: "Erase data?",
+      resetText: "Drafts, the AI video description and order numbers on this device will be deleted.", resetYes: "Erase",
+      resetDone: "Data on this device erased.",
+      editTitle: "Edit a video", editSub: "What shall we do with your video?",
+      svcNeuro: ["🪄 Change the video", "A new style, background or character — the AI will redraw your video"],
+      svcMontage: ["🎬 Editing", "We'll cut pauses, filler words and retakes, and clean up the voice"],
+      editNote: "“Change the video” and “Editing” — you'll send the video in the bot chat. “Change the style” — the video is uploaded right here.",
+      kinds: { montage: "🎬 Editing", neuro: "🪄 Change the video" },
+      modeLabel: "Mode",
+      modes: {
+        redraw: ["🎨 Change the look", "Change clothes, makeup and other details of the look while keeping the person. Works for talking videos and full-length shots."],
+        replace: ["🔁 Replace a character", "Replace a person or an object in the video, or give a person a different appearance. Describe who to change and how, and add a sample — an image or a preset. You can replace one character or several."],
+        motion: ["🕺 Motion transfer", "The character from the image will repeat your movements and gestures."],
+      },
+      nLen: "Video length", nLenHint: "Choose the approximate length of your video",
+      montageTitle: "Editing",
+      montageDesc: "We'll remove pauses, filler words and failed retakes and clean up the sound — the speech gets smoother and the video shorter. Your appearance and the picture stay the same.",
+      montagePick: "Choose what to improve",
+      montageItems: { 1: ["Cut pauses", "Silence between phrases — gone."], 2: ["Filler words", "“uh”, “um”, “like”."],
+        3: ["Retakes and slips", "Without losing the meaning."], 14: ["Clean voice", "Remove noise, even out the volume."] },
+      mLen: "Video length — approximately", mUpTo: "up to {t}", mTotal: "All videos together — up to 3 minutes.", mClips: "How many videos to join",
+      fewer: "Fewer", moreClips: "More", dur: ["{s} s", "{m} min", "{m} min {s} s"],
+      stepsMontage: ["Send {what} to the bot chat.", "The bot will check the length and show the exact price.", "Pay in the bot — the finished video will arrive there too."],
+      sendOne: "the video", sendMany: "{n} videos as one album",
+      stepsNeuro: ["The bot will open the chosen mode — send the video and, if the mode asks, a prompt or a sample.", "The exact price is in the card after the video.", "Pay in the bot — the result will arrive there too."],
+      priceNone: "The bot will show the exact price before payment.", priceMontage: "The bot will check the length and show the exact price before payment.",
+      priceNeuro: "Approximate price. The exact one is in the bot before payment.", toBot: "Order in the bot", needOpt: "Keep at least one editing item.",
     },
     it: {
       nav: ["Home", "Trend", "Modifica", "Crea", "Profilo"],
@@ -313,7 +416,7 @@
       createTitle: "Crea", createSub: "Cosa creiamo da zero?",
       cAiv: ["🎥 Video AI", "Descrivilo — l'IA girerà il video"],
       cImg: ["🖼 Immagini", "Crea da una descrizione, modifica una foto, rimuovi lo sfondo"],
-      cChar: ["🧩 Il tuo personaggio", "Scheda del personaggio dalle tue foto — per trend e montaggio IA"],
+      cChar: ["🧩 Il tuo personaggio", "Scheda del personaggio dalle tue foto — per trend e «Cambia il video»"],
       soon: "presto", imgSoon: "🖼 Immagini — in sviluppo. Presto!",
       ownStory: ["✍️ La tua storia", "Descrivi cosa girare"],
       aivTitle: "Crea un video", aivSub: "L'IA girerà un video dalla tua descrizione",
@@ -332,9 +435,57 @@
         "Tutto ciò che è vietato dalla legge e dalle regole di Telegram."],
       rulesHow: "Prima del prezzo la descrizione viene controllata secondo queste regole. Se qualcosa non va, ti spieghiamo cosa non si può e ti chiediamo di riscrivere; non paghi nulla.",
       checkingDesc: "Controlliamo la descrizione…", changeDesc: "Modifica la descrizione", orderAiv: "Video AI", createMore: "Creane un altro",
-      charTitle: "Il tuo personaggio", charSub: "Una scheda del personaggio dalle tue foto — l'IA mantiene volto e figura nei trend e nel montaggio IA.",
+      charTitle: "Il tuo personaggio", charSub: "Una scheda del personaggio dalle tue foto — l'IA mantiene volto e figura nei trend e in «Cambia il video».",
       charPhotos: "Le tue foto · 1–3", charStyle: "Stile", charBtn: "Crea il personaggio", charName: "🧩 Preset del personaggio",
       styleNames: { real: "📷 Realismo", cartoon: "🎨 Cartone", anime: "🌸 Anime", "3d": "🧸 3D" },
+      aivHints: ["Scritta nell'inquadratura — tra virgolette, fino a 30 caratteri · il testo in inglese va parola per parola",
+        "Foto 1, 2… — puoi scrivere «come nella Foto 1» · il video ha l'audio"],
+      softenRisk: "L'IA potrebbe rifiutare: {what}.", softenRiskAny: "L'IA potrebbe rifiutare questa descrizione.",
+      softenBtn: "🪶 Ammorbidisci", softenKeep: "Lascia così", softening: "Ammorbidiamo…",
+      softeningText: "Riscriviamo la descrizione — il nuovo conto apparirà qui.", softenOnce: "Si può ammorbidire una sola volta.",
+      editDescAsk: "Annulleremo il conto attuale — modificare la descrizione?", editDescYes: "Annulla il conto e modifica",
+      draftMontage: "{n} video · fino a {t}", draftTag: "bozza",
+      aboutTitle: "Dati",
+      about: [["Cosa è salvato qui", "Bozze e numeri dei tuoi ordini — solo su questo dispositivo."],
+        ["Video AI", "La bozza della descrizione e delle impostazioni del video AI resta solo su questo dispositivo — fino a 7 giorni; l'ultima descrizione pagata — 24 ore. «Cancella dati» elimina tutto."],
+        ["Foto, video e descrizioni per l'ordine", "Vanno a Montaggio solo per il tuo ordine; i tempi di conservazione sono nell'informativa privacy. Foto e video non restano nel browser."],
+        ["«Cambia il video» e «Montaggio»", "Al bot va solo la tua scelta — come codice breve nel link."]],
+      payPending: "Verifichiamo il pagamento… Se hai già pagato, non annullare l'ordine — il pagamento arriverà.",
+      cancelPaidNote: "Se hai già pagato, non annullare — il pagamento arriverà.",
+      editDescOther: "Si aprirà la tua bozza attuale — non la descrizione di questo conto.",
+      editDescLost: "La descrizione di questo conto non è salvata sul dispositivo — dovrai scriverla di nuovo.",
+      contTitle: "Continua", savedHere: "Salvato qui", draftsTitle: "Bozze",
+      draftsSub: "Ordini non ancora inviati — su questo dispositivo.", draftDrop: "Elimina bozza", draftDropped: "Bozza eliminata.",
+      noDrafts: "Nessuna bozza", noDraftsText: "Un ordine iniziato resterà qui finché non lo invii nel bot.",
+      profileTitle: "Il tuo spazio", profileSub: "Bozze — solo su questo dispositivo",
+      profileRows: [["Bozze", "{n} non inviate"], ["Come funziona", "L'app, il bot e il pagamento"], ["Dati", "Cosa è salvato e dove va"]],
+      resetLink: "Cancella dati su questo dispositivo", resetTitle: "Cancellare i dati?",
+      resetText: "Verranno eliminati bozze, descrizione del video AI e numeri d'ordine su questo dispositivo.", resetYes: "Cancella",
+      resetDone: "Dati su questo dispositivo cancellati.",
+      editTitle: "Modifica un video", editSub: "Cosa facciamo con il tuo video?",
+      svcNeuro: ["🪄 Cambia il video", "Nuovo stile, sfondo o personaggio — l'IA ridisegnerà il tuo video"],
+      svcMontage: ["🎬 Montaggio", "Tagliamo pause, intercalari e ripetizioni, puliamo la voce"],
+      editNote: "«Cambia il video» e «Montaggio» — il video lo invii nella chat del bot. «Cambia stile» — il video si carica qui.",
+      kinds: { montage: "🎬 Montaggio", neuro: "🪄 Cambia il video" },
+      modeLabel: "Modalità",
+      modes: {
+        redraw: ["🎨 Cambia look", "Cambia vestiti, trucco e altri dettagli del look, mantenendo la persona. Adatto ai video parlati e alle riprese a figura intera."],
+        replace: ["🔁 Sostituisci il personaggio", "Sostituisci una persona o un oggetto nel video, oppure dai a una persona un altro aspetto. Descrivi chi cambiare e come, e aggiungi un modello — un'immagine o un preset. Puoi sostituire uno o più personaggi."],
+        motion: ["🕺 Trasferimento del movimento", "Il personaggio dell'immagine ripeterà i tuoi movimenti e gesti."],
+      },
+      nLen: "Durata del video", nLenHint: "Scegli la durata approssimativa del tuo video",
+      montageTitle: "Montaggio",
+      montageDesc: "Togliamo pause, intercalari e ripetizioni venute male, puliamo l'audio — il discorso diventa più fluido e il video più corto. Aspetto e immagine restano gli stessi.",
+      montagePick: "Scegli cosa migliorare",
+      montageItems: { 1: ["Taglia le pause", "Via i silenzi tra le frasi."], 2: ["Intercalari", "«ehm», «cioè», «tipo»."],
+        3: ["Ripetizioni e lapsus", "Senza perdere il senso."], 14: ["Voce pulita", "Via il rumore, volume uniforme."] },
+      mLen: "Durata del video — circa", mUpTo: "fino a {t}", mTotal: "Tutti i video insieme — fino a 3 minuti.", mClips: "Quanti video unire",
+      fewer: "Meno", moreClips: "Di più", dur: ["{s} s", "{m} min", "{m} min {s} s"],
+      stepsMontage: ["Invia {what} nella chat del bot.", "Il bot controllerà la durata e mostrerà il prezzo esatto.", "Pagamento nel bot — il video finito arriverà lì."],
+      sendOne: "il video", sendMany: "{n} video in un unico album",
+      stepsNeuro: ["Il bot aprirà la modalità scelta — invia il video e, se la modalità lo chiede, un prompt o un modello.", "Il prezzo esatto — nella scheda dopo il video.", "Pagamento nel bot — il risultato arriverà lì."],
+      priceNone: "Il prezzo esatto lo mostra il bot prima del pagamento.", priceMontage: "Il bot controllerà la durata e mostrerà il prezzo esatto prima del pagamento.",
+      priceNeuro: "Prezzo indicativo. Quello esatto — nel bot prima del pagamento.", toBot: "Ordina nel bot", needOpt: "Lascia almeno una voce del montaggio.",
     },
   };
   const T = (key, vars) => {
@@ -420,19 +571,12 @@
   const btn = (text, action, cls = "primary", data = {}, ic = "") =>
     el("button", { class: `button ${cls}`, data: { action, ...data }, type: "button", icon: ic || null }, text);
 
-  // «Монтаж» — клиенту только стандартные пункты (В100): номер → название и пояснение, как в боте
-  const MONTAGE_ITEMS = [
-    [1, "Вырезать паузы", "Тишина между фразами — долой."],
-    [2, "Слова-паразиты", "«ээ», «ну», «как бы»."],
-    [3, "Дубли и оговорки", "Без потери смысла."],
-    [14, "Чистый голос", "Убрать шум, выровнять громкость."],
-  ];
-  const NEURO_MODES = [
-    ["redraw", "🎨 Перерисовка", "Нейросеть перерисует весь ролик: стиль, фон, свет, одежду."],
-    ["replace", "🔁 Замена", "Персонаж или предмет в видео — на ваш образец."],
-    ["motion", "🕺 Перенос движения", "Персонаж с картинки повторит ваши движения и жесты."],
-  ];
-  // режимы нейромонтажа в архиве — на экране не показываются, код, цена и тексты на месте; вернуть — убрать из списка.
+  // «Монтаж» — клиенту только стандартные пункты (В100, номера — как в боте); названия и пояснения — TEXT.montageItems.
+  // Режимы «Изменить видео» (бывший «Нейромонтаж»; 97C, правки партнёра): «Изменить образ» (redraw), «Заменить
+  // персонажа» (replace); названия и пояснения — TEXT.modes
+  const MONTAGE_ITEMS = [1, 2, 3, 14];
+  const NEURO_MODES = ["redraw", "replace", "motion"];
+  // режимы «Изменить видео» (нейромонтажа) в архиве — на экране не показываются, код, цена и тексты на месте; вернуть — убрать из списка.
   // motion — в архиве с 13.10 (вместо него — раздел «Стили»)
   const HIDDEN_MODES = ["motion"];
   const neuroModeOk = (m) => Object.prototype.hasOwnProperty.call(NEURO_CODES, m) && !HIDDEN_MODES.includes(m);
@@ -443,7 +587,7 @@
   const QUALITIES = ["480p", "720p", "1080p"];
   const MONTAGE_SECONDS = [15, 30, 45, 60, 90, 120, 180];
   const SHORT_SECONDS = [4, 5, 6, 8, 10, 12, 15, 20, 30];
-  const KIND_NAMES = { montage: "🎬 Монтаж", neuro: "🪄 Нейромонтаж", preset: "🧩 Пресет персонажа" };
+  const KIND_NAMES = { montage: "🎬 Монтаж", neuro: "🪄 Изменить видео", preset: "🧩 Пресет персонажа" };
   // ключ — только свой, не унаследованный (constructor, toString…): значения из хранилища и data-атрибутов чужие
   const has = (o, k) => typeof k === "string" && Object.prototype.hasOwnProperty.call(o, k);
 
@@ -465,7 +609,7 @@
       if (Number.isInteger(d.clips) && d.clips >= 1 && d.clips <= 10) base.clips = d.clips;
       if (Array.isArray(d.opts)) base.opts = STANDARD.filter((n) => d.opts.includes(n));
     } else if (d.kind === "neuro") {
-      if (neuroModeOk(d.mode)) base.mode = d.mode;            // архивный режим — «Перерисовка»
+      if (neuroModeOk(d.mode)) base.mode = d.mode;            // архивный режим — «Изменить образ» (redraw)
       if (SHORT_SECONDS.includes(d.sec)) base.sec = d.sec;
       if (QUALITIES.includes(d.q)) base.q = d.q;
     } else if (has(STYLE_CODES, d.style)) base.style = d.style;
@@ -480,27 +624,41 @@
       return null;
     const at = Number(o.at);
     if (!(at > Date.now() - ORDER_TTL && at <= Date.now() + 60000)) return null;
+    const payAt = Number(o.payAt);
     return { id: o.id, kind: o.kind, trend: typeof o.trend === "string" && TREND_ID.test(o.trend) ? o.trend : "",
       preset: o.preset === 1 ? 1 : 0, at,
-      st: typeof o.st === "string" && /^[a-z_]{1,16}$/.test(o.st) ? o.st : "" };
+      st: typeof o.st === "string" && /^[a-z_]{1,16}$/.test(o.st) ? o.st : "",
+      payAt: payAt > 0 && payAt <= Date.now() + 60000 ? payAt : 0 };
+  }
+  // 97C доделка 2: клиент открыл оплату — 5 мин (или до смены статуса) «Изменить описание» и «Отменить» не показываем:
+  // бот ещё не подтвердил оплату, отмена и новый заказ дали бы вторую оплату. Время — в записи заказа (localStorage)
+  const PAY_WAIT = 5 * 60 * 1000;
+  function payWaiting(id, d) {
+    const m = myOrders.find((o) => o.id === id);
+    return !!(m && m.payAt && d && d.status === "quoted" && Date.now() - m.payAt < PAY_WAIT);
+  }
+  function markPay(id, on = true) {
+    const m = myOrders.find((o) => o.id === id);
+    if (m) { m.payAt = on ? Date.now() : 0; persist(); }
   }
   // на главной — заказы, которые ещё идут или готовы (результат живёт 24 ч); отменённые и отказы — нет
   const SHOWN = new Set(["", "new", "picked", "quoted", "needs_consent", "paid", "working", "done"]);
 
   // --- хранилище этого устройства ---
   const storageKey = "montaggio-app-v1";
-  let drafts = [], myOrders = [], trendsExpanded = true, storedAiv = null;
+  let drafts = [], myOrders = [], trendsExpanded = true, storedAiv = null, storedLast = null;
   try {
     const s = JSON.parse(localStorage.getItem(storageKey) || "{}");
     drafts = (Array.isArray(s.drafts) ? s.drafts : []).map(cleanDraft).filter(Boolean).slice(0, 8);
     myOrders = (Array.isArray(s.orders) ? s.orders : []).map(cleanOrder).filter(Boolean).slice(0, 5);
     trendsExpanded = s.trendsExpanded !== false;
     storedAiv = s.aiv;                // черновик AI-видео (96C) — разбирает restoreAiv
+    storedLast = s.aivLast;           // последнее оплаченное описание (97C) — тоже restoreAiv
   } catch {}
   let storageWarned = false;
   function persist() {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ drafts, orders: myOrders, trendsExpanded, aiv: aivStored() }));
+      localStorage.setItem(storageKey, JSON.stringify({ drafts, orders: myOrders, trendsExpanded, aiv: aivStored(), aivLast: packAiv(aivLast) }));
     } catch {
       if (!storageWarned) {
         storageWarned = true;
@@ -664,7 +822,7 @@
   // (tgSettled), маршрут живёт в памяти (memRoute), а # не трогаем — иначе скрипт не узнает initData и версию
   let tgSettled = !START_HASH, memRoute = null;
   const route = () => memRoute !== null ? memRoute
-    : location.hash.startsWith("#/") ? location.hash.slice(2) || "home" : "home";
+    : location.hash.startsWith("#/") ? location.hash.slice(2).split(/[&?]/)[0] || "home" : "home";
   // 96C: «Персонаж» (код w1-p в бота) заменён экраном «Свой персонаж» в приложении — #/preset (старые адреса тоже)
   const FLOW = { "edit/montage": "montage", "edit/neuro": "neuro" };
   function nav(to) {
@@ -686,7 +844,8 @@
       const to = memRoute;
       memRoute = null;
       location.hash = "/" + to;
-    }
+    } else if (/^#\/[^&?]*[&?]/.test(location.hash))      // «#/trends&tgWebAppData=…» — адрес без параметров запуска
+      history.replaceState(null, "", location.pathname + location.search + "#/" + route());
   }
   function parentOf(r) {
     if (r.startsWith("trend/")) return "trends";
@@ -733,20 +892,20 @@
     }).join("");
   }
   function draftTitle(d) {
-    return KIND_NAMES[d.kind].replace(/^\S+\s/, "");
+    return (T("kinds")[d.kind] || KIND_NAMES[d.kind]).replace(/^\S+\s/, "");
   }
   function draftLine(d) {
-    if (d.kind === "montage") return `${d.clips} видео · до ${secText(d.sec)}`;
-    if (d.kind === "neuro") return `${NEURO_MODES.find((m) => m[0] === d.mode)[1]} · ${d.sec} сек · ${d.q}`;
+    if (d.kind === "montage") return T("draftMontage", { n: d.clips, t: secText(d.sec) });
+    if (d.kind === "neuro") return `${T("modes")[d.mode][0]} · ${T("sec", { n: d.sec })} · ${d.q}`;
     return PRESET_STYLES.find((s) => s[0] === d.style)[1];
   }
   const draftCard = (d) =>
-    `<button class="continue-card" data-action="resume" data-id="${d.id}"><span class="continue-icon">${icon(d.kind === "preset" ? "user" : "video")}</span><span><strong>${esc(draftTitle(d))}</strong><small>${esc(draftLine(d))} · черновик</small></span>${icon("arrow")}</button>`;
+    `<button class="continue-card" data-action="resume" data-id="${d.id}"><span class="continue-icon">${icon(d.kind === "preset" ? "user" : "video")}</span><span><strong>${esc(draftTitle(d))}</strong><small>${esc(draftLine(d))} · ${esc(T("draftTag"))}</small></span>${icon("arrow")}</button>`;
   function continueCards() {
     if (!drafts.length) return "";
-    return `<section class="continue-section" aria-label="Черновики"><div class="section-heading"><h2>Продолжить</h2><span class="saved-label">${icon("check")}Сохранено здесь</span></div><div class="draft-list">${drafts.slice(0, 3).map(draftCard).join("")}</div></section>`;
+    return `<section class="continue-section" aria-label="${esc(T("draftsTitle"))}"><div class="section-heading"><h2>${esc(T("contTitle"))}</h2><span class="saved-label">${icon("check")}${esc(T("savedHere"))}</span></div><div class="draft-list">${drafts.slice(0, 3).map(draftCard).join("")}</div></section>`;
   }
-  const secText = (s) => s < 60 ? `${s} сек` : `${Math.floor(s / 60)} мин` + (s % 60 ? ` ${s % 60} сек` : "");
+  const secText = (s) => { const [a, b, c] = T("dur"); return (s < 60 ? a : s % 60 ? c : b).replace("{s}", s % 60 || s).replace("{m}", Math.floor(s / 60)); };
 
   // --- тренды (91): карточки с готовым видео, ролики — со своего адреса по id ---
   const media = (id, kind) => `trends/${encodeURIComponent(id)}/${kind}`;
@@ -1288,17 +1447,20 @@
   // --- AI-видео (96C): описание 1–4000, 0–10 фото-образцов без людей, формат, длина 4–30 с, качество → сервер
   // (type=aivideo) → проверка описания и цена — бот. Черновик: описание, формат, длина, качество и номер отправленного
   // заказа — в localStorage (Telegram перезагрузил окно — текст на месте), фото — только в памяти страницы. После отказа
-  // (rejected) всё на месте — «Изменить описание»; после оплаты или отмены этого заказа — стирается ---
+  // (rejected) и отмены счёта (97C) всё на месте — «Изменить описание»; после оплаты этого заказа — стирается, а
+  // описание с форматом, длиной и качеством 24 ч лежит отдельно (aivLast) — для «Создать ещё» на экране результата ---
   const AIV_RATIOS = ["9:16", "16:9", "1:1", "4:3", "3:4", "21:9"];
   const AIV_MAIN = 3;                   // сразу видны три формата, остальные — под «ещё…»
   const AIV_DESC_MAX = 4000, AIV_PHOTOS = 10, AIV_MIN = 4, AIV_MAX = 30;
-  const freshAiv = () => ({ desc: "", ratio: "9:16", sec: 10, q: "720p", more: false, photos: [], order: "", rev: 0 });
+  // ratioSet (97C, поле ratio_set): клиент сам нажал формат; нет — бот может взять формат из описания
+  const freshAiv = () => ({ desc: "", ratio: "9:16", ratioSet: false, sec: 10, q: "720p", more: false, photos: [], order: "", rev: 0 });
   // черновик из хранилища — только известные значения
   function restoreAiv(o) {
     const a = freshAiv();
     if (!o || typeof o !== "object") return a;
     if (typeof o.desc === "string") a.desc = o.desc.slice(0, AIV_DESC_MAX);
     if (AIV_RATIOS.includes(o.ratio)) a.ratio = o.ratio;
+    a.ratioSet = o.rs === 1;
     if (Number.isInteger(o.sec) && o.sec >= AIV_MIN && o.sec <= AIV_MAX) a.sec = o.sec;
     if (QUALITIES.includes(o.q)) a.q = o.q;
     if (typeof o.order === "string" && ORDER_ID.test(o.order)) a.order = o.order;
@@ -1312,9 +1474,13 @@
   }
   const AIV_DRAFT_TTL = 7 * 24 * 3600 * 1000;
   let aiv = restoreAiv(storedAiv);
-  const aivStored = () => aiv.desc.trim()
-    ? { desc: aiv.desc.slice(0, AIV_DESC_MAX), ratio: aiv.ratio, sec: aiv.sec, q: aiv.q, order: aiv.order, at: aiv.at || Date.now() }
+  // последнее оплаченное описание (97C) — только с номером своего заказа и не старше 24 ч, как сам номер
+  let aivLast = restoreAiv(storedLast);
+  if (!aivLast.order || !aivLast.desc.trim()) aivLast = null;
+  const packAiv = (a) => a && a.desc.trim()
+    ? { desc: a.desc.slice(0, AIV_DESC_MAX), ratio: a.ratio, rs: a.ratioSet ? 1 : 0, sec: a.sec, q: a.q, order: a.order, at: a.at || Date.now() }
     : undefined;
+  const aivStored = () => packAiv(aiv);
   let aivSaveTimer = 0;
   // клиент правит черновик: он больше не тот, что ушёл заказом, — оплата прошлого заказа его не сотрёт
   function aivTouched(save = true) {
@@ -1340,12 +1506,15 @@
   // окно сворачивают или закрывают — недописанное описание сохраняем сразу, не дожидаясь паузы
   document.addEventListener("visibilitychange", () => { if (document.hidden && aivSaveTimer) flushAiv(); });
   window.addEventListener("pagehide", () => { if (aivSaveTimer) flushAiv(); });
-  // при запуске: заказ черновика уже не наш (номер забыт — старше 24 ч или не найден) или ушёл дальше «к оплате» —
-  // черновик не нужен; истёкший — restoreAiv уже отбросил, здесь стираем и в хранилище
+  // при запуске: заказ черновика уже не наш (номер забыт — старше 24 ч или не найден) — черновик не нужен; ушёл
+  // дальше «к оплате» или отменён — как при опросе (settleAiv); истёкший — restoreAiv уже отбросил, здесь стираем и в
+  // хранилище. Последнее описание — только пока номер его заказа среди своих
   {
     const mine = aiv.order && myOrders.find((o) => o.id === aiv.order);
-    if (aiv.order && (!mine || ["paid", "working", "done", "review", "cancelled"].includes(mine.st))) clearAiv();
-    else if (storedAiv && !aiv.desc) persist();
+    if (aivLast && !myOrders.some((o) => o.id === aivLast.order)) aivLast = null;
+    if (aiv.order && !mine) clearAiv();
+    else if (mine) settleAiv(mine.id, mine.st);
+    if ((storedAiv && !aiv.desc) || (storedLast && !aivLast)) persist();
   }
   // длина описания для счётчика: перенос строки — один знак (в поле переносы всегда \n)
   const descLen = (s) => s.replace(/\r\n/g, "\n").length;
@@ -1412,7 +1581,8 @@
     return el("div", { class: "photo-page aiv-page" }, pageTopEl(T("aivTitle"), T("aivSub")),
       el("section", { class: "ask-block" },
         el("div", { class: "ask-head" }, el("h3", { id: "aiv-what", text: T("aivWhat") }),
-          el("span", { class: "ask-count", id: "aiv-count", text: `${descLen(aiv.desc)} / ${AIV_DESC_MAX}` })), area),
+          el("span", { class: "ask-count", id: "aiv-count", text: `${descLen(aiv.desc)} / ${AIV_DESC_MAX}` })), area,
+        el("p", { class: "aiv-hints" }, T("aivHints").map((s) => el("span", { text: s })))),
       el("section", { class: "ask-block" },
         el("div", { class: "ask-head" }, el("h3", { text: T("aivPhotos") }),
           el("span", { class: "ask-count", text: `${aiv.photos.length} / ${AIV_PHOTOS}` })),
@@ -1453,6 +1623,7 @@
     form.append("ratio", aiv.ratio);
     form.append("seconds", String(aiv.sec));
     form.append("quality", aiv.q);
+    form.append("ratio_set", aiv.ratioSet ? "1" : "0");     // 97: 1 — формат нажат клиентом, 0 — по умолчанию
     form.append("lang", LANG);
     aiv.photos.forEach((p, i) => form.append("photo[]", p.file, `photo${i + 1}`));
     const rev = aiv.rev;
@@ -1467,16 +1638,40 @@
     const items = T("rulesNo").map((s) => `<li>${esc(s)}</li>`).join("");
     showModal(esc(T("rulesTitle")), `<p class="sheet-text">${esc(T("rulesOk"))}</p><ol class="sheet-rules">${items}</ol><p class="sheet-text">${esc(T("rulesHow"))}</p>`);
   }
-  // заказ AI-видео оплачен, ушёл в работу или отменён — черновик (описание и фото) больше не нужен
+  // заказ AI-видео оплачен или ушёл в работу — черновик (описание и фото) больше не нужен; описание, формат, длина и
+  // качество остаются последним описанием (aivLast) для «Создать ещё». Счёт отменён (97C) — черновик остаётся на
+  // экране, уже не привязанный к этому заказу (неотправленный — 7 дней)
   function settleAiv(id, status) {
-    if (aiv.order === id && ["paid", "working", "done", "review", "cancelled"].includes(status)) clearAiv();
+    if (aiv.order !== id) return;
+    if (status === "cancelled") {
+      aiv.order = "";
+      aiv.at = Date.now();
+      persist();
+    } else if (["paid", "working", "done", "review"].includes(status)) {
+      aivLast = { ...aiv, photos: [], order: id, at: Date.now() };
+      clearAiv();
+    }
+  }
+  // «Создать ещё» после результата (97C): последнее описание этого заказа — на экране, его можно изменить. Начатый
+  // после него черновик не трогаем
+  function createMore(id) {
+    if (aivLast && aivLast.order === id && !aiv.desc.trim()) {
+      aiv = { ...freshAiv(), desc: aivLast.desc, ratio: aivLast.ratio, ratioSet: aivLast.ratioSet, sec: aivLast.sec,
+        q: aivLast.q, more: AIV_RATIOS.indexOf(aivLast.ratio) >= AIV_MAIN, at: Date.now() };
+      persist();
+    }
+    nav("create/video");
   }
 
   // --- экран заказа (91): опрос раз в 2,5 с, пока окно видно; всё о деньгах — из ответа сервера ---
   const LIVE = new Set(["new", "picked", "quoted", "needs_consent", "paid", "working"]);
   const CANCELABLE = new Set(["new", "picked", "quoted", "needs_consent"]);
   const STATUSES = new Set([...LIVE, "rejected", "review", "done", "cancelled"]);
-  let view = { id: "", data: null, gone: false, offline: false, paying: false };
+  // softenAt — когда сервер принял «Смягчить» (до ответа опроса, отправленного после этого, оплату не показываем);
+  // softenKept — блок «Смягчить» скрыт: «Оставить как есть» или смягчение уже просили (одно на заказ, 97A
+  // soften_once; бот не ответил за 30 мин — сервер снимает просьбу и снова показывает оплату старого счёта)
+  // cancelAt — когда нажали «Отменить»: ответы опроса, отправленного раньше, отбрасываются
+  let view = { id: "", data: null, gone: false, offline: false, paying: false, softenAt: 0, softenKept: false, cancelAt: 0 };
   let pollTimer = 0, pollBusy = false;
   function cleanStatus(b) {
     if (!b || typeof b !== "object" || !STATUSES.has(b.status)) return null;
@@ -1485,7 +1680,16 @@
     const no = int(b.order_no) ?? (typeof b.order_no === "string" && /^\d{1,10}$/.test(b.order_no) ? b.order_no : null);
     return { status: b.status, price_rub: int(b.price_rub), price_stars: int(b.price_stars), order_no: no,
       rub_url: str(pay.rub_url, 2048), stars_link: str(pay.stars_link, 2048),
-      message: str(b.message, 4000).trim(), result_url: str(b.result_url, 2048) };
+      message: str(b.message, 4000).trim(), result_url: str(b.result_url, 2048),
+      soften: b.status === "quoted" ? cleanSoften(b.soften) : null, soften_wanted: b.soften_wanted === true };
+  }
+  // 97: предложение бота смягчить описание AI-видео — {offer: 1–300, risks: 0–3 строки по 1–120}; тексты бота, на
+  // страницу — только textContent. Не того вида — предложения нет
+  function cleanSoften(s) {
+    if (!s || typeof s !== "object" || typeof s.offer !== "string" || !s.offer.trim()) return null;
+    const risks = Array.isArray(s.risks) ? s.risks.filter((r) => typeof r === "string" && r.trim()).slice(0, 3)
+      .map((r) => r.trim().slice(0, 120)) : [];
+    return { offer: s.offer.trim().slice(0, 300), risks };
   }
   // ссылки оплаты: адрес кладёт бот, сервер (недоверенный) мог бы подменить — кнопка только для ссылки ровно того вида,
   // что даёт ЮKassa на платёж магазина (confirmation_url), и с суммой на кнопке; не тот вид — «оплатить в боте».
@@ -1509,10 +1713,15 @@
     if (document.hidden) return;                  // окно скрыто — продолжим по visibilitychange
     if (pollBusy) return;
     pollBusy = true;
+    const asked = Date.now();
     try {
       const data = cleanStatus(await api("/api/orders/" + id));
       if (view.id !== id) return;
-      const before = JSON.stringify(view.data) + view.offline;
+      if (view.cancelAt && asked < view.cancelAt) return;     // ответ до отмены — устарел (опрос продолжит cancelOrder)
+      // снятие пометки «Смягчаем…» — тоже перемена экрана (сервер мог и не узнать о просьбе — данные те же)
+      const before = JSON.stringify(view.data) + view.offline + payWaiting(id, view.data) + !!view.softenAt;
+      // дальше о смягчении знает ответ сервера — но не пока идёт сам запрос «Смягчить» (softenBusy)
+      if (view.softenAt && !softenBusy && asked > view.softenAt) view.softenAt = 0;
       view.offline = false;
       if (data) {
         view.data = data;
@@ -1520,7 +1729,7 @@
         if (mine && mine.st !== data.status) { mine.st = data.status; persist(); }
         settleAiv(id, data.status);
       }
-      if (before !== JSON.stringify(view.data) + view.offline) render();
+      if (before !== JSON.stringify(view.data) + view.offline + payWaiting(id, view.data) + !!view.softenAt) render();
       if (!data || LIVE.has(data.status)) schedulePoll();
     } catch (e) {
       if (view.id !== id) return;
@@ -1528,6 +1737,7 @@
         view.gone = true;
         forgetOrder(id);
         if (aiv.order === id) clearAiv();            // заказа больше нет — и черновика, ушедшего им
+        if (aivLast && aivLast.order === id) { aivLast = null; persist(); }   // и его последнего описания
         render();
         return;
       }
@@ -1554,7 +1764,7 @@
   });
   function orderPage(id) {
     if (view.id !== id) {
-      view = { id, data: null, gone: false, offline: false, paying: false, error: "" };
+      view = { id, data: null, gone: false, offline: false, paying: false, error: "", softenAt: 0, softenKept: false, cancelAt: 0 };
       schedulePoll(0);
     } else if (!pollTimer && !pollBusy && !view.gone && !view.error && (!view.data || LIVE.has(view.data.status)))
       schedulePoll(0);                              // вернулись к заказу — опрос снова
@@ -1568,6 +1778,7 @@
     const preset = meta.kind === "preset", style = meta.kind === "style", aivideo = meta.kind === "aivideo";
     const checking = preset ? T("checkingPreset") : style ? T("checkingVideo") : aivideo ? T("checkingDesc") : T("checking");
     const d = view.data;
+    const waiting = payWaiting(id, d);                // оплату открывали — ждём подтверждения бота, не отменяем
     const box = el("div", { class: "status-card" });
     const head = (title, spinner) => box.append(el("div", { class: "status-head" },
       spinner ? el("span", { class: "spinner" }) : null, el("h1", { text: title })));
@@ -1580,12 +1791,27 @@
       head(checking, true);
     } else if (d.status === "new" || d.status === "picked") {
       head(checking, true);
+    } else if (d.status === "quoted" && (d.soften_wanted || view.softenAt)) {
+      // 97: клиент нажал «Смягчить» — ждём новый счёт от бота; ссылок старого счёта не показываем
+      head(T("softening"), true);
+      box.append(el("p", { class: "status-message", text: T("softeningText") }));
+      if (aivideo && !waiting) actions.append(btn(T("changeDesc"), "edit-desc", "ghost full", {}, "sliders"));
     } else if (d.status === "quoted") {
       // «Заказ №N · сумма»: номер — order_no бота, сумма — из ответа (₽ только ru); номера нет — только сумма
       const sum = LANG === "ru" && d.price_rub ? rub(d.price_rub) : d.price_stars ? stars(d.price_stars) : "";
       const title = [d.order_no !== null ? T("orderNo", { n: d.order_no }) : T("toPay"), sum].filter(Boolean).join(" · ");
       head(view.paying ? T("payCheck") : title, view.paying);
       msg();
+      if (waiting) box.append(el("p", { class: "status-note", text: T("payPending") }));
+      // 97: бот видит риск отказа нейросети — «Смягчить» (новый счёт) или «Оставить как есть»; оплата видна сразу
+      if (aivideo && d.soften && !view.softenKept && !view.paying && !waiting) {
+        const what = d.soften.risks.join(", ");
+        box.append(el("div", { class: "soften-block" },
+          el("p", { class: "soften-risk", text: what ? T("softenRisk", { what }) : T("softenRiskAny") }),
+          el("p", { class: "soften-offer", text: d.soften.offer }),
+          el("div", { class: "soften-actions" }, btn(T("softenBtn"), "soften", "secondary small"),
+            btn(T("softenKeep"), "soften-keep", "ghost small"))));
+      }
       const host = payHost(d.rub_url);
       if (LANG === "ru" && host && d.price_rub)
         actions.append(btn(`${T("payCard")} · ${rub(d.price_rub)}`, "pay-rub", "primary full"),
@@ -1596,6 +1822,9 @@
         box.append(el("p", { class: "status-note", text: T("payBot") }));
         actions.append(btn(T("openBot"), "open-bot", "secondary full", {}, "send"));
       }
+      // 97C: описание можно поправить до оплаты — текущий счёт отменяем (два живых счёта — две оплаты), черновик
+      // остаётся на экране «Создать видео» (новый заказ)
+      if (aivideo && !waiting) actions.append(btn(T("changeDesc"), "edit-desc", "ghost full", {}, "sliders"));
     } else if (d.status === "needs_consent") {
       head(T("consent"));
       msg();
@@ -1641,7 +1870,7 @@
       if (preset && meta.trend && trendById(meta.trend))
         actions.append(btn(T("backToTrend"), "back-to-trend", "primary full", { id: meta.trend }, "arrow"));
       else if (style) actions.append(btn(T("toStyles"), "nav", "ghost full", { to: "styles" }));
-      else if (aivideo) actions.append(btn(T("createMore"), "nav", "ghost full", { to: "create/video" }));
+      else if (aivideo) actions.append(btn(T("createMore"), "create-more", "ghost full", { id }));
       else actions.append(btn(T("toTrends"), "nav", preset ? "primary full" : "ghost full", { to: "trends" }));
     } else if (d.status === "cancelled") {
       head(T("cancelled"));
@@ -1649,7 +1878,7 @@
         : btn(T("toTrends"), "nav", "primary full", { to: "trends" }));
     }
     if (view.offline) box.append(el("p", { class: "status-note offline", text: T("retry") }));
-    if (!view.gone && (!d || CANCELABLE.has(d.status)))
+    if (!view.gone && (!d || CANCELABLE.has(d.status)) && !waiting)
       actions.append(btn(T("cancel"), "cancel-order", "ghost full"));
     const face = el("div", { class: "status-monti" });
     face.insertAdjacentHTML("afterbegin", monti("m"));               // свой Монти, без данных сервера
@@ -1659,20 +1888,57 @@
     const d = view.data;
     if (!d || d.status !== "quoted" || !tg) return;
     if (kind === "rub" && payHost(d.rub_url)) {
+      markPay(view.id);
       tg.openLink(d.rub_url);                       // ЮKassa — во внешнем браузере; вернувшись, опрос подхватит
       view.paying = true;
       render();
     } else if (kind === "stars" && starsOk(d.stars_link)) {
+      const id = view.id;
+      markPay(id);
       if (tg.openInvoice && tg.isVersionAtLeast && tg.isVersionAtLeast("6.1")) {
         tg.openInvoice(d.stars_link, (status) => {
           if (status === "paid") { view.paying = true; render(); schedulePoll(500); }
+          else if (status === "cancelled" || status === "failed") { markPay(id, false); render(); }   // окно закрыли без оплаты
         });
       } else tg.openTelegramLink(d.stars_link);
     }
   }
-  async function cancelOrder() {
+  // 97: «🪶 Смягчить» — только просьба (POST …/soften): новый текст, правила и новый счёт решает бот. Пока он не
+  // выставил новый счёт — «Смягчаем…», кнопок оплаты старого счёта нет
+  let softenBusy = false;
+  async function softenOrder() {
+    const id = view.id, d = view.data;
+    if (softenBusy || !d || d.status !== "quoted" || !d.soften) return;
+    softenBusy = true;
+    // ревью 97C: кнопки оплаты старого счёта прячем сразу, до ответа сервера (запрос — до 10 с)
+    view.softenAt = Date.now();
+    view.softenKept = true;
+    render();
+    try {
+      await api(`/api/orders/${id}/soften`, { method: "POST" });
+      if (view.id === id) view.softenAt = Date.now();     // опросы, отправленные раньше этого, пометку не снимут
+    } catch (e) {
+      toast(e.code === "soften_once" ? T("softenOnce") : e.message);
+      if (view.id === id && e.status === 0) {         // сеть: дошла ли просьба — скажет следующий удачный опрос
+        view.softenAt = Date.now();
+        view.softenKept = true;
+        render();
+      } else if (view.id === id) {                    // не принят — снова счёт; блок — только если смягчить ещё можно
+        view.softenAt = 0;
+        view.softenKept = ["no_soften", "soften_once", "already_paid", "order_cancelled", "cannot_soften"].includes(e.code);
+        render();
+      }
+    } finally {
+      softenBusy = false;
+      if (view.id === id) schedulePoll(0);
+    }
+  }
+  // then — после отмены (ревью 97C: «Изменить описание» на счёте — отмена, потом экран «Создать видео»); отказ — текст
+  // сервера, без перехода
+  async function cancelOrder(then) {
     const id = view.id;
     closeModal();
+    view.cancelAt = Date.now();
     try {
       const b = await api(`/api/orders/${id}/cancel`, { method: "POST" });
       if (b && b.status === "cancelled" && view.id === id && view.data) view.data.status = "cancelled";
@@ -1681,7 +1947,8 @@
       if (mine) { mine.st = "cancelled"; persist(); }
       settleAiv(id, "cancelled");
       stopPoll();
-      render();
+      if (then && view.id === id) nav(then);
+      else render();
     } catch (e) {
       toast(e.message);
       schedulePoll(0);
@@ -1704,12 +1971,15 @@ ${continueCards()}
 ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
 <div class="section-heading"><div><h2>${esc(T("styles"))}</h2><p class="section-hint">${esc(T("stylesHint"))}</p></div></div>
 <div id="home-styles" data-mount="home-styles"></div>
-<div class="onboarding-strip">${monti("s")}<div><h3>Свой персонаж</h3><p>Лист персонажа по вашим фото — для нейромонтажа и своих проектов.</p></div>${button("Пресет", "new-preset", "secondary small", "", "plus")}</div>`;
+<div class="onboarding-strip">${monti("s")}<div><h3>Свой персонаж</h3><p>Лист персонажа по вашим фото — для «Изменить видео» и своих проектов.</p></div>${button("Пресет", "new-preset", "secondary small", "", "plus")}</div>`;
   }
   const MOUNTS = { "home-trends": homeTrends, "home-styles": homeStyles, orders: homeOrders };
 
+  // вкладка «Изменить» (97C, правки партнёра 12.10): «Изменить видео» (нейросеть) — первым и зелёным, «Монтаж» —
+  // последним и тёмным
   function editLanding() {
-    return `<div class="editor-landing">${pageTop("Изменить видео", "Что сделать с вашим видео?")}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="montage">${icon("scissors")}<div><span>🎬 Монтаж</span><small>Вырежем паузы, слова-паразиты и дубли, почистим голос</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="neuro">${icon("spark")}<div><span>🪄 Нейромонтаж</span><small>Новый стиль, фон или персонаж — нейросеть перерисует видео</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>🎨 ${esc(T("tileStyle")[0])}</span><small>${esc(T("tileStyle")[1])}</small></div>${icon("arrow")}</button></div><p class="bottom-note">Для монтажа и нейромонтажа видео пришлёте в чате с ботом. Стили — видео загружается прямо здесь.</p></div>`;
+    const [n1, n2] = T("svcNeuro"), [m1, m2] = T("svcMontage"), [s1, s2] = T("tileStyle");
+    return `<div class="editor-landing">${pageTop(esc(T("editTitle")), esc(T("editSub")))}<div class="service-pick"><button class="product-tile active" data-action="start" data-kind="neuro">${icon("spark")}<div><span>${esc(n1)}</span><small>${esc(n2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="nav" data-to="styles">${icon("layers")}<div><span>🎨 ${esc(s1)}</span><small>${esc(s2)}</small></div>${icon("arrow")}</button><button class="product-tile" data-action="start" data-kind="montage">${icon("scissors")}<div><span>${esc(m1)}</span><small>${esc(m2)}</small></div>${icon("arrow")}</button></div><p class="bottom-note">${esc(T("editNote"))}</p></div>`;
   }
   // 96C: вкладка «Создать» — AI-видео и свой персонаж (в приложении); «Картинки» — на стадии разработки (владелец
   // 13.10: в бота не уводим; пометка «скоро», касание — короткое сообщение). Код w1-i бот по-прежнему понимает
@@ -1726,52 +1996,59 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
   const select = (id, values, current, label) =>
     `<select id="${id}">${values.map((v) => `<option value="${v}" ${v === current ? "selected" : ""}>${label(v)}</option>`).join("")}</select>`;
 
+  // экран «Монтаж» (97C, правки партнёра): один заголовок «Монтаж», описание, «Выберите, что нужно улучшить» и пункты
   function montageFields(d) {
-    return `<h2>🎬 Монтаж</h2><p>Стандартный монтаж — всё включено, лишнее можно снять.</p>${MONTAGE_ITEMS.map(([n, name, hint]) => {
-      const on = d.opts.includes(n);
-      return `<div class="edit-option ${on ? "selected" : ""}"><button class="option-title" data-action="opt" data-value="${n}" aria-pressed="${on}"><b class="opt-num">${n}</b><span>${name}<small class="opt-hint">${hint}</small></span><i class="switch" aria-hidden="true"></i></button></div>`;
-    }).join("")}<div class="field"><label for="m-sec">Длина видео — примерно</label>${select("m-sec", MONTAGE_SECONDS, d.sec, (v) => "до " + secText(v))}<small>Всех видео вместе — до 3 минут.</small></div><div class="field"><span class="field-label">Сколько видео склеить</span><div class="stepper"><button data-action="clips" data-value="-1" aria-label="Меньше">−</button><output id="m-clips">${d.clips}</output><button data-action="clips" data-value="1" aria-label="Больше">+</button></div></div>`;
+    const items = T("montageItems");
+    return `<p>${esc(T("montageDesc"))}</p><div class="field-label montage-pick">${esc(T("montagePick"))}</div>${MONTAGE_ITEMS.map((n) => {
+      const on = d.opts.includes(n), [name, hint] = items[n];
+      return `<div class="edit-option ${on ? "selected" : ""}"><button class="option-title" data-action="opt" data-value="${n}" aria-pressed="${on}"><b class="opt-num">${n}</b><span>${esc(name)}<small class="opt-hint">${esc(hint)}</small></span><i class="switch" aria-hidden="true"></i></button></div>`;
+    }).join("")}<div class="field"><label for="m-sec">${esc(T("mLen"))}</label>${select("m-sec", MONTAGE_SECONDS, d.sec, (v) => esc(T("mUpTo", { t: secText(v) })))}<small>${esc(T("mTotal"))}</small></div><div class="field"><span class="field-label">${esc(T("mClips"))}</span><div class="stepper"><button data-action="clips" data-value="-1" aria-label="${esc(T("fewer"))}">−</button><output id="m-clips">${d.clips}</output><button data-action="clips" data-value="1" aria-label="${esc(T("moreClips"))}">+</button></div></div>`;
   }
+  // экран «Изменить видео» (бывший «Нейромонтаж»): режим и пояснение к выбранному режиму под переключателем
   function neuroFields(d) {
-    const mode = NEURO_MODES.find((m) => m[0] === d.mode);
-    return `<h2>🪄 Нейромонтаж</h2><p>${mode[2]}</p><div class="field"><span class="field-label">Режим</span>${chips("mode", NEURO_MODES.filter((m) => neuroModeOk(m[0])), d.mode)}</div><div class="field"><label for="n-sec">Длина видео</label>${select("n-sec", SHORT_SECONDS, d.sec, (v) => v + " сек")}</div><div class="field"><span class="field-label">Качество</span>${chips("q", QUALITIES.map((q) => [q, q]), d.q)}</div>`;
+    const modes = T("modes");
+    return `<div class="field"><span class="field-label">${esc(T("modeLabel"))}</span>${chips("mode", NEURO_MODES.filter(neuroModeOk).map((m) => [m, modes[m][0]]), d.mode)}<p class="mode-hint" aria-live="polite">${esc(modes[d.mode][1])}</p></div><div class="field"><label for="n-sec">${esc(T("nLen"))}</label>${select("n-sec", SHORT_SECONDS, d.sec, (v) => esc(T("sec", { n: v })))}<small>${esc(T("nLenHint"))}</small></div><div class="field"><span class="field-label">${esc(T("quality"))}</span>${chips("q", QUALITIES.map((q) => [q, q]), d.q)}</div>`;
   }
   // что будет в боте — честно: что прислать и где цена (пресет с 96C — в приложении, экран «Свой персонаж»)
   function botSteps(d) {
-    if (d.kind === "montage")
-      return [`Пришлите ${d.clips > 1 ? d.clips + " видео одним альбомом" : "видео"} в чат с ботом.`, "Бот проверит длину и покажет точную цену.", "Оплата — в боте, потом готовое видео придёт туда же."];
-    return ["Бот откроет выбранный режим — пришлите видео и, если режим просит, промпт или образец.", "Точная цена — в карточке после видео.", "Оплата — в боте, результат придёт туда же."];
+    if (d.kind === "montage") {
+      const [a, ...rest] = T("stepsMontage");
+      return [a.replace("{what}", d.clips > 1 ? T("sendMany", { n: d.clips }) : T("sendOne")), ...rest];
+    }
+    return T("stepsNeuro");
   }
   function flowPage(kind) {
     if (!draft || draft.kind !== kind) draft = drafts.find((x) => x.kind === kind) || newDraft(kind);
     const d = draft;
     const fields = kind === "montage" ? montageFields(d) : neuroFields(d);
-    const title = "Изменить видео";
+    // один заголовок, поменьше (правки партнёра): «Изменить видео» или «Монтаж»; без «Черновик сохраняется…»
+    const title = kind === "montage" ? T("montageTitle") : T("kinds").neuro.replace(/^\S+\s/, "");
     const body = `<div class="fields solo">${fields}${priceBlock(d)}<ol class="bot-steps">${botSteps(d).map((s) => `<li>${esc(s)}</li>`).join("")}</ol><div id="flow-error" class="form-error" role="alert"></div><div class="workflow-actions">${ctaHtml(d)}</div></div>`;
-    return `<div class="workflow">${pageTop(title, "Черновик сохраняется на этом устройстве")}${body}</div>`;
+    return `<div class="workflow">${pageTop(esc(title))}${body}</div>`;
   }
+  // примерная цена — в рублях, только ru (как у AI-видео и стилей); en/it — «точную цену покажет бот»
   function priceBlock(d) {
-    const price = priceFor(d);
+    const price = LANG === "ru" ? priceFor(d) : null;
     if (price === null)
-      return `<div class="quote-hint">${icon("info")}Точную цену бот покажет до оплаты.</div>`;
-    const note = d.kind === "montage" ? "Бот проверит длину и покажет точную цену до оплаты." : "Примерная цена. Точная — в боте перед оплатой.";
-    return `<div class="price-card"><span>${KIND_NAMES[d.kind]}</span><strong id="price">≈ ${rub(price)}</strong><small>${note}</small></div>`;
+      return `<div class="quote-hint">${icon("info")}${esc(T("priceNone"))}</div>`;
+    const note = d.kind === "montage" ? T("priceMontage") : T("priceNeuro");
+    return `<div class="price-card"><span>${esc(T("kinds")[d.kind])}</span><strong id="price">≈ ${rub(price)}</strong><small>${esc(note)}</small></div>`;
   }
   function ctaLabel(d) {
-    const price = priceFor(d);
-    return "Оформить в боте" + (price === null ? "" : ` · ≈ ${rub(price)}`);
+    const price = LANG === "ru" ? priceFor(d) : null;
+    return T("toBot") + (price === null ? "" : ` · ≈ ${rub(price)}`);
   }
   const botUrl = (d) => "https://t.me/Montaggio_bot?start=" + encode(d);
   function ctaHtml(d) {
     const bad = d.kind === "montage" && !d.opts.length;
-    if (inTelegram || bad) return button(ctaLabel(d), "order", "primary full", bad ? "disabled" : "", "send");
+    if (inTelegram || bad) return button(esc(ctaLabel(d)), "order", "primary full", bad ? "disabled" : "", "send");
     return `<a class="button primary full" href="${esc(botUrl(d))}" data-action="order-link">${icon("send")}${esc(ctaLabel(d))}</a>`;
   }
   function order() {
     const d = draft;
     if (!d) return;
     if (d.kind === "montage" && !d.opts.length) {
-      $("#flow-error").textContent = "Оставьте хотя бы один пункт монтажа.";
+      $("#flow-error").textContent = T("needOpt");
       return;
     }
     const url = botUrl(d);
@@ -1784,14 +2061,15 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
   }
 
   function profile() {
-    return `<div class="profile-page"><div class="profile-header">${monti("s")}<div><h1>Ваше пространство</h1><p>Черновики — только на этом устройстве</p></div></div>${[
-      ["layers", "Черновики", `${drafts.length} не оформлено`, "nav", "drafts"],
-      ["info", "Как это работает", "Приложение, бот и оплата", "help", ""],
-      ["user", "Данные", "Что хранится и что куда уходит", "about", ""],
-    ].map(([ic, title, sub, a, to]) => `<button class="profile-row" data-action="${a}" ${to ? `data-to="${to}"` : ""}>${icon(ic)}<span><strong>${title}</strong><small>${sub}</small></span>${icon("chevron")}</button>`).join("")}<button class="text-button" data-action="reset">Стереть данные на этом устройстве ${icon("reset")}</button></div>`;
+    const [r1, r2, r3] = T("profileRows");
+    return `<div class="profile-page"><div class="profile-header">${monti("s")}<div><h1>${esc(T("profileTitle"))}</h1><p>${esc(T("profileSub"))}</p></div></div>${[
+      ["layers", r1[0], r1[1].replace("{n}", drafts.length), "nav", "drafts"],
+      ["info", r2[0], r2[1], "help", ""],
+      ["user", r3[0], r3[1], "about", ""],
+    ].map(([ic, title, sub, a, to]) => `<button class="profile-row" data-action="${a}" ${to ? `data-to="${to}"` : ""}>${icon(ic)}<span><strong>${esc(title)}</strong><small>${esc(sub)}</small></span>${icon("chevron")}</button>`).join("")}<button class="text-button" data-action="reset">${esc(T("resetLink"))} ${icon("reset")}</button></div>`;
   }
   function draftsPage() {
-    return `${pageTop("Черновики", "Не оформленные заказы — на этом устройстве.")}${drafts.length ? `<div class="draft-list">${drafts.map((d) => `<div class="draft-row">${draftCard(d)}<button class="icon-button" data-action="drop" data-id="${d.id}" aria-label="Удалить черновик">${icon("trash")}</button></div>`).join("")}</div>` : `<div class="empty-state">${monti("xl")}<h2>Черновиков нет</h2><p>Начатый заказ сохранится здесь, пока вы не оформите его в боте.</p>${button("К трендам", "nav", "primary", 'data-to="trends"')}</div>`}`;
+    return `${pageTop(esc(T("draftsTitle")), esc(T("draftsSub")))}${drafts.length ? `<div class="draft-list">${drafts.map((d) => `<div class="draft-row">${draftCard(d)}<button class="icon-button" data-action="drop" data-id="${d.id}" aria-label="${esc(T("draftDrop"))}">${icon("trash")}</button></div>`).join("")}</div>` : `<div class="empty-state">${monti("xl")}<h2>${esc(T("noDrafts"))}</h2><p>${esc(T("noDraftsText"))}</p>${button(esc(T("toTrends")), "nav", "primary", 'data-to="trends"')}</div>`}`;
   }
   function waitCatalog() {
     return trendsState(false) || trendsPage();       // такого тренда в каталоге уже нет — весь каталог
@@ -1944,7 +2222,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     } else if (a === "new-preset") { presetReturn = ""; nav("preset"); }
     else if (a === "preset-style" && has(STYLE_CODES, v) && !sending) { presetStyle = v; render(); }
     else if (a === "images") toast(T("imgSoon"));
-    else if (a === "aiv-ratio" && AIV_RATIOS.includes(v) && !sending) { aiv.ratio = v; aivTouched(); render(); }
+    else if (a === "aiv-ratio" && AIV_RATIOS.includes(v) && !sending) { aiv.ratio = v; aiv.ratioSet = true; aivTouched(); render(); }
     else if (a === "aiv-more") { aiv.more = true; render(); }
     else if (a === "aiv-q" && QUALITIES.includes(v) && !sending) { aiv.q = v; aivTouched(); render(); }
     else if (a === "aiv-photo-remove" && !sending) {
@@ -1957,6 +2235,9 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       }
     } else if (a === "send-aiv" && AIVIDEO_ON) sendAiv();
     else if (a === "aiv-rules") aivRulesSheet();
+    else if (a === "soften") softenOrder();
+    else if (a === "soften-keep") { view.softenKept = true; render(); }
+    else if (a === "create-more" && AIVIDEO_ON) createMore(b.dataset.id);
     else if (a === "back-to-trend") { presetPick = b.dataset.id; nav("who/" + b.dataset.id); }
     else if (a === "ask-mode" && !sending) {
       const t = trendById(route().slice(4)), blk = t && askFor(t).find((x) => x.preset);
@@ -1994,8 +2275,13 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (a === "suggest-trend") openBot("?start=trend");
     else if (a === "support") { openBot(); toast(T("supportHint")); }
     else if (a === "cancel-order")
-      showModal(esc(T("cancelAsk")), `${button(esc(T("cancelYes")), "confirm-cancel", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
+      showModal(esc(T("cancelAsk")), `${view.data && view.data.status === "quoted" ? `<p class="sheet-text">${esc(T("cancelPaidNote"))}</p>` : ""}${button(esc(T("cancelYes")), "confirm-cancel", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
     else if (a === "confirm-cancel") cancelOrder();
+    else if (a === "edit-desc")
+      // черновик — не описание этого счёта (правили после отправки или его уже нет): говорим, что откроется
+      showModal(esc(T("changeDesc")), `<p class="sheet-text">${esc(T("editDescAsk"))}</p>${aiv.order === view.id ? ""
+        : `<p class="sheet-text">${esc(T(aiv.desc.trim() ? "editDescOther" : "editDescLost"))}</p>`}<p class="sheet-text">${esc(T("cancelPaidNote"))}</p>${button(esc(T("editDescYes")), "confirm-edit-desc", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
+    else if (a === "confirm-edit-desc") cancelOrder("create/video");
     else if (a === "save-result") {
       const d = view.data;
       if (d && resultOk(d.result_url)) {
@@ -2010,7 +2296,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       }
     } else if (a === "start") { draft = newDraft(b.dataset.kind); nav("edit/" + b.dataset.kind); }
     else if (a === "resume") { const d = drafts.find((x) => x.id === b.dataset.id); if (d) openDraft(d); }
-    else if (a === "drop") { dropDraft(b.dataset.id); render(); toast("Черновик удалён."); }
+    else if (a === "drop") { dropDraft(b.dataset.id); render(); toast(T("draftDropped")); }
     else if (draft && a === "opt") {
       const n = Number(v);
       draft.opts = draft.opts.includes(n) ? draft.opts.filter((x) => x !== n) : STANDARD.filter((x) => x === n || draft.opts.includes(x));
@@ -2021,16 +2307,16 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (draft && a === "style" && has(STYLE_CODES, v)) { draft.style = v; changed(); }
     else if (a === "order") order();
     else if (a === "help")
-      showModal("Как это работает", `${monti("m")}<ul class="sheet-list"><li><strong>Тренды, стили, AI-видео и свой персонаж — прямо здесь</strong>Выберите ролик или стиль, опишите видео или добавьте фото. Цену и оплату покажем в приложении, готовое придёт сюда и в чат бота @${BOT}.</li><li><strong>Монтаж и нейромонтаж — в боте</strong>Соберите заказ, кнопка откроет чат с ботом с вашим выбором. Видео пришлёте там.</li><li><strong>Оплата</strong>Цену всегда считает бот и показывает до оплаты.</li></ul>`);
+      showModal("Как это работает", `${monti("m")}<ul class="sheet-list"><li><strong>Тренды, стили, AI-видео и свой персонаж — прямо здесь</strong>Выберите ролик или стиль, опишите видео или добавьте фото. Цену и оплату покажем в приложении, готовое придёт сюда и в чат бота @${BOT}.</li><li><strong>«Изменить видео» и «Монтаж» — в боте</strong>Соберите заказ, кнопка откроет чат с ботом с вашим выбором. Видео пришлёте там.</li><li><strong>Оплата</strong>Цену всегда считает бот и показывает до оплаты.</li></ul>`);
     else if (a === "about")
-      showModal("Данные", `<ul class="sheet-list"><li><strong>Что хранится здесь</strong>Черновики и номера ваших заказов — только в этом браузере.</li><li><strong>Фото, видео и описания для заказа</strong>Уходят в Montaggio только для вашего заказа, сроки хранения — в политике конфиденциальности. В браузере не остаются.</li><li><strong>Монтаж и нейромонтаж</strong>В бота уходит только ваш выбор — коротким кодом в ссылке.</li></ul>`);
+      showModal(esc(T("aboutTitle")), `<ul class="sheet-list">${T("about").map(([h, t]) => `<li><strong>${esc(h)}</strong>${esc(t)}</li>`).join("")}</ul>`);
     else if (a === "reset")
-      showModal("Стереть данные?", `<p>Удалятся черновики и номера заказов на этом устройстве.</p>${button("Стереть", "confirm-reset", "primary full")}${button("Оставить", "close", "ghost full")}`);
+      showModal(esc(T("resetTitle")), `<p>${esc(T("resetText"))}</p>${button(esc(T("resetYes")), "confirm-reset", "primary full")}${button(esc(T("cancelNo")), "close", "ghost full")}`);
     else if (a === "confirm-reset") {
-      drafts = []; myOrders = []; draft = null;
+      drafts = []; myOrders = []; draft = null; aivLast = null;
       clearAiv();
       try { localStorage.removeItem(storageKey); } catch {}
-      closeModal(); render(); toast("Данные на этом устройстве стёрты.");
+      closeModal(); render(); toast(T("resetDone"));
     }
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });

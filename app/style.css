@@ -3635,3 +3635,53 @@ a.button {
 .sheet-rules li + li {
   margin-top: 6px;
 }
+
+/* промпт 97C: правки партнёра (12.10) и «Смягчить» */
+.workflow .page-top h1 {
+  font-size: 22px;
+}
+.montage-pick {
+  margin: 4px 0 12px;
+}
+.mode-hint {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.aiv-hints {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.aiv-hints span {
+  display: block;
+}
+.soften-block {
+  margin: 14px 0 0;
+  padding: 14px;
+  border: 1px solid #363636;
+  border-radius: 12px;
+  background: #141414;
+}
+.soften-block p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.soften-block .soften-offer {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.soften-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.soften-actions .button {
+  flex: 1 1 140px;
+}

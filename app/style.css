@@ -3434,6 +3434,21 @@ a.button {
 .upload-bar[hidden] {
   display: none;
 }
+/* 102: «нет связи / связь медленная» под полосой загрузки — текст и кнопки */
+.net-help[hidden] {
+  display: none;
+}
+.net-help .form-error,
+.net-help .ask-note {
+  padding: 10px 0 0;
+  margin: 0;
+}
+.net-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
 .upload-fill {
   display: block;
   width: 0;

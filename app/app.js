@@ -127,7 +127,10 @@
       send: "Отправить", sending: "Отправляем… {p}%", sent: "Отправлено",
       errCount: "Можно не больше {n} фото.", errSize: "Фото больше 10 МБ: {name}", errTotal: "Все фото вместе — не больше 40 МБ.",
       errType: "Это не фото: {name}", errNet: "Нет связи с сервером — попробуйте ещё раз.",
-      errUpload: "Файлы слишком большие или связь прервалась — попробуйте файлы поменьше.",
+      // 102: нет связи с приёмной (проверка до заливки, обрыв, таймаут) и медленная заливка — про интернет и VPN
+      netDown: "Нет связи с сервером Montaggio. Проверьте интернет; если включён VPN — попробуйте без него или с другим.",
+      netSlow: "Связь медленная… Проверьте интернет или VPN.", netRetry: "Повторить", netCancel: "Отменить",
+      netSent: "Файлы ушли, но ответ сервера не дошёл — заказ мог уже дойти. Подождите пару минут, прежде чем отправлять снова.",
       errNeed: "Добавьте хотя бы одно фото.",
       checking: "Проверяем фото…", checkingPreset: "Проверяем пресет…", toPay: "К оплате", orderNo: "Заказ №{n}",
       payCard: "💳 Оплатить картой / СБП", payStars: "⭐ Оплатить звёздами", payWhere: "Оплата на странице {host}",
@@ -282,7 +285,9 @@
       send: "Send", sending: "Sending… {p}%", sent: "Sent",
       errCount: "No more than {n} photos.", errSize: "Photo larger than 10 MB: {name}", errTotal: "All photos together — no more than 40 MB.",
       errType: "Not a photo: {name}", errNet: "No connection to the server — please try again.",
-      errUpload: "The files are too large or the connection dropped — try smaller files.",
+      netDown: "No connection to the Montaggio server. Check your internet; if a VPN is on, try without it or with another one.",
+      netSlow: "The connection is slow… Check your internet or VPN.", netRetry: "Try again", netCancel: "Cancel",
+      netSent: "The files went through, but the server's reply didn't arrive — the order may already be in. Wait a couple of minutes before sending again.",
       errNeed: "Add at least one photo.",
       checking: "Checking the photos…", checkingPreset: "Checking the preset…", toPay: "To pay", orderNo: "Order #{n}",
       payCard: "💳 Pay by card", payStars: "⭐ Pay with Stars", payWhere: "Payment on {host}",
@@ -431,7 +436,9 @@
       send: "Invia", sending: "Invio… {p}%", sent: "Inviato",
       errCount: "Non più di {n} foto.", errSize: "Foto oltre 10 MB: {name}", errTotal: "Tutte le foto insieme — non più di 40 MB.",
       errType: "Non è una foto: {name}", errNet: "Nessuna connessione al server — riprova.",
-      errUpload: "File troppo grandi o connessione interrotta — prova con file più piccoli.",
+      netDown: "Nessuna connessione al server Montaggio. Controlla internet; se la VPN è attiva, prova senza o con un'altra.",
+      netSlow: "La connessione è lenta… Controlla internet o la VPN.", netRetry: "Riprova", netCancel: "Annulla",
+      netSent: "I file sono partiti, ma la risposta del server non è arrivata — l'ordine potrebbe essere già arrivato. Aspetta un paio di minuti prima di reinviare.",
       errNeed: "Aggiungi almeno una foto.",
       checking: "Controlliamo le foto…", checkingPreset: "Controlliamo il preset…", toPay: "Da pagare", orderNo: "Ordine n. {n}",
       payCard: "💳 Paga con carta", payStars: "⭐ Paga con le Stelle", payWhere: "Pagamento su {host}",
@@ -766,7 +773,8 @@
       this.code = body && typeof body.error === "string" ? body.error : status ? "http_" + status : "network";
     }
   }
-  async function api(path, { method = "GET", timeout = 10000 } = {}) {
+  // peek (102) — только код ответа: тело не читаем, запрос обрываем
+  async function api(path, { method = "GET", timeout = 10000, peek = false } = {}) {
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), timeout);
     let r;
@@ -780,15 +788,31 @@
     } finally {
       clearTimeout(timer);
     }
+    if (peek) {
+      ctl.abort();
+      return r.status;
+    }
     let body = null;
     try { body = await r.json(); } catch {}
     if (!r.ok) throw new ApiError(r.status, body);
     return body;
   }
+  // 102: связь с приёмной до заливки — тот же GET /api/trends с тем же заголовком (у него есть CORS). Нужен только
+  // ответ: тело не читаем (обрываем — у VPN оно может зависнуть, а каталог не нужен). Не ответил за 8 с — 0, нет связи:
+  // файлы не шлём. Иначе — код ответа (401 — связь есть, решит сам заказ). Данных о сети клиента не собираем
+  async function reachable() {
+    try {
+      return await api("/api/trends", { timeout: 8000, peek: true });
+    } catch {
+      return 0;
+    }
+  }
+  let upload = null;              // идущая заливка (XMLHttpRequest) — для «Отменить» и «Оформить в боте»
   // заливка заказа с фото: XMLHttpRequest — ради полосы загрузки (fetch не умеет показывать отправку)
   function postOrder(form, onProgress) {
     return new Promise((resolve, reject) => {
       const x = new XMLHttpRequest();
+      upload = x;
       x.open("POST", API + "/api/orders");
       x.setRequestHeader("X-Telegram-Init-Data", initData());
       let bytes = 0;
@@ -801,10 +825,12 @@
         if (x.status === 200 && body && ORDER_ID.test(body.order_id)) resolve(body.order_id);
         else reject(new ApiError(x.status, body));
       });
-      // сеть оборвалась во время заливки — или nginx отказал по размеру (413 без CORS браузер показывает как обрыв)
-      const fail = () => reject(new ApiError(0, form.has("photo[]") || form.has("video") ? { message: T("errUpload") } : null));
-      x.addEventListener("error", fail);
-      x.addEventListener("timeout", fail);
+      // сеть оборвалась во время заливки или таймаут — код network (submit покажет «нет связи» и запасной путь);
+      // «Отменить» — код cancelled, без сообщения
+      x.addEventListener("error", () => reject(new ApiError(0, null)));
+      x.addEventListener("timeout", () => reject(new ApiError(0, null)));
+      x.addEventListener("abort", () => reject(new ApiError(0, { error: "cancelled" })));
+      x.addEventListener("loadend", () => { if (upload === x) upload = null; });
       x.send(form);
     });
   }
@@ -1296,14 +1322,24 @@
       plain.map((b) => blockEl(b, t)), group, t ? wishBlock() : null, charParts,
       el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
       el("div", { id: "flow-error", class: "form-error", role: "alert" }),
+      netEl(),
       el("div", { class: "workflow-actions" }, send));
     queueMicrotask(updateSend);
     return node;
   }
   let sending = false;
+  let sendPct = null;              // 102: идёт отправка — проценты; перерисованный экран сразу показывает их и полосу
   function updateSend() {
     const b = $("#send-photos"), r = route();
     if (!b) return;
+    if (sending && sendPct !== null) {
+      b.lastChild.textContent = T("sending", { p: sendPct.p });
+      const bar = $("#upload-bar");
+      if (bar && sendPct.files) {
+        bar.hidden = false;
+        bar.firstChild.style.width = sendPct.p + "%";
+      }
+    }
     if (r.startsWith("style/")) return void (b.disabled = sending || !!styleMissing());
     if (r === "create/video") {
       // идёт заливка — фото не добавить (в неё они уже не попадут)
@@ -1354,29 +1390,116 @@
       preset: usePreset ? 1 : 0 });
   }
   // отправка заказа с полосой загрузки; удалось — фото и видео стираются из памяти, экран заказа
+  // 102: «Отправляем… 0 %» сразу после нажатия; связь с приёмной проверяется до заливки; нет связи, обрыв или таймаут —
+  // «нет связи» с «Повторить» и «Оформить в боте»; заливка без прогресса SLOW_MS — «связь медленная» с «Отменить»
+  // и «Оформить в боте». Всё ушло (100 %), а ответа нет WAIT_MS — «связь медленная» только с «Отменить»; обрыв после
+  // 100 % — «заказ мог уже дойти» с «Повторить», без «Оформить в боте»: сервер мог его принять, второй заказ — лишняя
+  // платная проверка. Черновик при этом не трогаем: всё стирается только после принятого заказа
+  const SLOW_MS = 20000, WAIT_MS = 45000;
   async function submit(form, files, meta) {
-    sending = true;
-    updateSend();
-    const bar = $("#upload-bar"), fill = bar && bar.firstChild, sendBtn = $("#send-photos");
+    const sendBtn = $("#send-photos");
     const label = sendBtn ? sendBtn.lastChild.textContent : "";
-    if (bar) bar.hidden = !files;
+    sending = true;
+    sendPct = { p: 0, files };
+    updateSend();
     showError("");
+    setNet("");
+    const at = route();                 // блок — экрану этого заказа, даже если клиент ушёл на другой во время заливки
+    let slow = 0, done = 0;
+    const watch = (kind, ms) => {       // нет нового прогресса (или ответа после 100 %) — подсказка
+      clearTimeout(slow);
+      slow = setTimeout(() => setNet(kind, at), ms);
+    };
     try {
+      const status = await reachable();
+      if (!status) throw new ApiError(0, null);
+      if (status >= 500) throw new ApiError(status, null);     // приёмная отвечает, но заказы не берёт — без заливки
+      watch("slow", SLOW_MS);
       const id = await postOrder(form, (f) => {
-        if (fill) fill.style.width = Math.round(f * 100) + "%";
-        if (sendBtn && files) sendBtn.lastChild.textContent = T("sending", { p: Math.round(f * 100) });
+        if (f <= done) return;
+        done = f;
+        if (net && net.kind === "slow") setNet("", at);
+        watch(f >= 1 ? "wait" : "slow", f >= 1 ? WAIT_MS : SLOW_MS);
+        sendPct = { p: Math.round(f * 100), files };
+        updateSend();
       });
+      clearTimeout(slow);
+      setNet("");
+      sendPct = null;
       clearPhotos();
       rememberOrder({ id, ...meta, at: Date.now() });
       sending = false;
       nav("order/" + id);
       return id;
     } catch (e) {
+      clearTimeout(slow);
       sending = false;
-      if (bar) bar.hidden = true;
-      if (sendBtn) sendBtn.lastChild.textContent = label;
+      sendPct = null;
+      const b = $("#upload-bar"), s = $("#send-photos");
+      if (b) b.hidden = true;
+      if (s) s.lastChild.textContent = label;
       updateSend();
-      showError(e.message);
+      if (e.code === "network") {
+        const kind = done >= 1 ? "sent" : "down";
+        setNet(kind, at);
+        if (at !== route()) toast(T(kind === "sent" ? "netSent" : "netDown"));    // ушёл с экрана — сказать всё равно
+      } else {
+        setNet("", at);
+        if (e.code !== "cancelled") showError(e.message);
+      }
+    }
+  }
+  // блок «нет связи / связь медленная» под полосой загрузки: текст и кнопки; «Оформить в боте» — только где у услуги
+  // есть код бота (netCode). Состояние живёт до смены экрана: перерисовка того же экрана блок не теряет
+  // kind: down — нет связи / обрыв; slow — заливка стоит; wait — всё ушло, ответа нет; sent — обрыв после 100 %
+  let net = null;                       // { kind, route }
+  function netEl() {
+    const on = net && net.route === route(), k = on ? net.kind : "";
+    const slow = k === "slow" || k === "wait", code = k === "down" || k === "slow" ? netCode() : "";
+    return el("div", { id: "net-help", class: "net-help", hidden: !on, role: slow ? "status" : "alert" }, on ? [
+      el("p", { class: slow ? "ask-note" : "form-error", text: T(slow ? "netSlow" : k === "sent" ? "netSent" : "netDown") }),
+      el("div", { class: "net-actions" },
+        slow ? btn(T("netCancel"), "net-cancel", "secondary small") : btn(T("netRetry"), "net-retry", "secondary small"),
+        code ? btn(T("toBot"), "net-bot", "secondary small", {}, "send") : null)] : null);
+  }
+  function setNet(kind, at = route()) {
+    net = kind ? { kind, route: at } : null;
+    const box = $("#net-help");
+    if (!box || (kind && at !== route())) return;
+    const node = netEl();
+    box.replaceWith(node);
+    // кнопка отправки — внизу экрана поверх страницы, блок — над ней в конце формы: показываем его (сразу, как nav)
+    if (kind) node.scrollIntoView({ block: "center", behavior: "instant" });
+  }
+  // код бота из выбора клиента (без описания и файлов) — как до 101/96C: «Изменить видео» — w1-n, AI-видео — w1-v,
+  // «Свой персонаж» и «Сделать пресет» — w1-p. Тренды и стили бот кодом не открывает — только «Повторить»
+  const AIV_RATIO_CODES = { "9:16": "916", "16:9": "169", "1:1": "11", "4:3": "43", "3:4": "34", "21:9": "219" };
+  function netCode() {
+    const r = route();
+    if (r === "edit/neuro" && NEURO_APP_ON && neuroModeOk(nv.mode) && QUALITIES.includes(nv.q)) {
+      const d = nv.video && nv.video.dur;
+      const sec = Number.isFinite(d) ? Math.min(30, Math.max(4, Math.ceil(d - 0.01))) : 10;
+      return encode({ kind: "neuro", mode: nv.mode, sec, q: nv.q });
+    }
+    if (r === "create/video" && AIVIDEO_ON && has(AIV_RATIO_CODES, aiv.ratio) && QUALITIES.includes(aiv.q)
+      && aiv.sec >= AIV_MIN && aiv.sec <= AIV_MAX)
+      return `w1-v-${AIV_RATIO_CODES[aiv.ratio]}-${aiv.sec}-${parseInt(aiv.q, 10)}-0`;
+    if (r === "preset" || r === "preset-new")
+      return encode({ kind: "preset", style: charPath() && has(STYLE_CODES, presetStyle) ? presetStyle : "real" });
+    return "";
+  }
+  function netAction(a) {
+    if (a === "net-retry") {
+      setNet("");
+      const b = $("#send-photos");
+      if (b && !b.disabled) b.click();
+    } else if (a === "net-cancel") {
+      if (upload) upload.abort();
+    } else if (a === "net-bot") {
+      const code = netCode();
+      if (!code) return;
+      if (upload) upload.abort();        // в боте — тот же заказ заново; эта заливка не должна прийти вторым заказом
+      openBot("?start=" + code);
     }
   }
 
@@ -1517,6 +1640,7 @@
       est ? el("p", { class: "ask-note", text: T("estimate", { p: rub(est), n: billSec(v.dur) }) }) : null,
       el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
       el("div", { id: "flow-error", class: "form-error", role: "alert" }),
+      netEl(),
       el("div", { class: "workflow-actions" }, send));
   }
   // заказ стиля: type=style, style_id, quality, lang, prompt?, video, photo[] (контракт 92)
@@ -1755,6 +1879,7 @@
         el("small", { text: T("aivNote") })) : el("div", { class: "quote-hint", icon: "info" }, T("aivNote")),
       el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
       el("div", { id: "flow-error", class: "form-error", role: "alert" }),
+      netEl(),
       el("div", { class: "workflow-actions" }, send),
       el("p", { class: "aiv-ban" }, T("aivBan") + " · ",
         el("button", { class: "text-button aiv-rules", type: "button", data: { action: "aiv-rules" } }, T("rules"))));
@@ -1902,6 +2027,7 @@
       el("div", { class: "upload-bar", id: "upload-bar", hidden: true }, el("span", { class: "upload-fill" })),
       el("p", { class: "ask-note nv-need", id: "nv-need" }),
       el("div", { id: "flow-error", class: "form-error", role: "alert" }),
+      netEl(),
       el("div", { class: "workflow-actions" }, send));
   }
   // заказ «Изменить видео»: type (первым), mode, quality, desc, use_preset, lang, photo[] (до видео — небольшие, сервер
@@ -2374,6 +2500,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     navBar();
     const r = route();
     if (!r.startsWith("order/")) stopPoll();
+    if (net && net.route !== r) net = null;       // 102: «нет связи» — только на экране, где случилось
     if (!/^(who\/|preset-new$|preset$|style\/)/.test(r) && photos.key && !sending) clearPhotos();
     if (TREND_FLOW.test(r) || r === "home") {
       const retry = catalogState === "down" && inTelegram && Date.now() - catalogAt > 30000;
@@ -2503,6 +2630,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
       if (draft) dropDraft(draft.id);
       return;
     }
+    if (a.startsWith("net-")) return void netAction(a);
     if (a === "back") back();
     else if (a === "nav") nav(b.dataset.to);
     else if (a === "close") closeModal();

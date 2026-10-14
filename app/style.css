@@ -3799,15 +3799,12 @@ a.button {
 .trends-tab .own-story-button {
   margin-top: 18px;
 }
-.cat-back {
-  min-height: 44px;
-  margin: -12px 0 6px;
-  font-size: 15px;
-  color: var(--text);
+/* поправка владельца 15.10: кнопки — фильтр; выбрана категория — подсказка и сетка её трендов под кнопками */
+.cat-anchor {
+  display: block;
 }
-.cat-back svg {
-  width: 18px;
-  height: 18px;
+.trends-list > .tcat-hint {
+  margin: 10px 0 14px;
 }
 .tgrid {
   display: grid;

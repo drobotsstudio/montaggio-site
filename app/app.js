@@ -97,7 +97,7 @@
       loading: "Загружаем тренды…", downTitle: "Тренды скоро вернутся", downText: "Пока оформите заказ в боте.",
       cats: { me: ["🙋 Я в кадре", "Нужно ваше фото"], duo: ["👯 Вдвоём", "Ваше фото и фото друга"],
         business: ["💼 Для бизнеса", "Фото товара или машины"], pet: ["🐾 Питомец", "Фото питомца"], kids: ["👶 Дети", "Вы и ваш ребёнок"] },
-      catAll: "🔥 Все", catMore: "Все", catBack: "Тренды", nTrends: ["тренд", "тренда", "трендов"],
+      catAll: "🔥 Все", catMore: "Все",nTrends: ["тренд", "тренда", "трендов"],
       openBot: "Открыть бота", source: "Исходник", result: "Готовое видео",
       soundOn: "Включить звук", soundOff: "Выключить звук",
       quality: "Качество", q: { "480p": "Для сторис", "720p": "Чёткий HD", "1080p": "Максимум" }, repeat: "Повторить",
@@ -258,7 +258,7 @@
       loading: "Loading trends…", downTitle: "Trends will be back soon", downText: "Meanwhile, order in the bot.",
       cats: { me: ["🙋 Me on screen", "Your photo"], duo: ["👯 Duo", "Your photo and a friend's"],
         business: ["💼 For business", "A product or car photo"], pet: ["🐾 My pet", "A photo of your pet"], kids: ["👶 Kids", "You and your child"] },
-      catAll: "🔥 All", catMore: "All", catBack: "Trends", nTrends: ["trend", "trends"],
+      catAll: "🔥 All", catMore: "All",nTrends: ["trend", "trends"],
       openBot: "Open the bot", source: "Original", result: "Final video",
       soundOn: "Turn sound on", soundOff: "Turn sound off",
       quality: "Quality", q: { "480p": "For Stories", "720p": "Sharp HD", "1080p": "Maximum" }, repeat: "Repeat",
@@ -412,7 +412,7 @@
       loading: "Caricamento dei trend…", downTitle: "I trend tornano presto", downText: "Intanto ordina nel bot.",
       cats: { me: ["🙋 Io in scena", "La tua foto"], duo: ["👯 In coppia", "La tua foto e quella di un amico"],
         business: ["💼 Business", "Foto del prodotto o dell'auto"], pet: ["🐾 Animali", "Foto del tuo animale"], kids: ["👶 Bambini", "Tu e tuo figlio"] },
-      catAll: "🔥 Tutti", catMore: "Tutti", catBack: "Trend", nTrends: ["trend", "trend"],
+      catAll: "🔥 Tutti", catMore: "Tutti",nTrends: ["trend", "trend"],
       openBot: "Apri il bot", source: "Originale", result: "Video finale",
       soundOn: "Attiva l'audio", soundOff: "Disattiva l'audio",
       quality: "Qualità", q: { "480p": "Per le storie", "720p": "HD nitido", "1080p": "Massima" }, repeat: "Ripeti",
@@ -960,8 +960,7 @@
       history.replaceState(null, "", location.pathname + location.search + "#/" + route());
   }
   function parentOf(r) {
-    if (r.startsWith("trends/")) return "trends";
-    if (r.startsWith("trend/")) return trendBack || "trends";
+    if (r.startsWith("trend/")) return "trends";
     if (r.startsWith("who/")) return "trend/" + r.slice(4);
     if (r.startsWith("style/")) return "styles";
     if (r === "preset-new") return presetReturn ? "who/" + presetReturn : "create";
@@ -1145,52 +1144,79 @@
     return el("div", {}, el("div", { class: "page-head" }, el("div", {}, el("h1", { text: T("styles") }), el("p", { text: T("stylesSub") }))),
       stylesStateEl(false) || styleCarousel("large"));
   }
-  // 104C: вкладка «Тренды» — категории сверху вниз, в каждой лента вбок; кнопки вверху: «🔥 Все» — к началу вкладки,
-  // категория — её страница (#/trends/<ключ>, сетка 2 в ряд). Пустая категория не показывается. В конце — «Свой сюжет»
-  // и «Предложить тренд»
+  // 104C (поправка владельца 15.10): вкладка «Тренды» — кнопки вверху (липкие) — фильтр: «🔥 Все» (по умолчанию) —
+  // категории сверху вниз, в каждой лента вбок; выбрана категория — ниже кнопок только её тренды сеткой 2 в ряд.
+  // Отдельной страницы и «назад» нет: меняется только список под кнопками. Пустая категория не показывается.
+  // В конце — «Свой сюжет» и «Предложить тренд». Выбор живёт, пока открыто приложение (trendCat)
+  let trendCat = "";                    // "" — все; иначе ключ из CATS
+  const shownCats = () => CATS.map((k) => [k, catTrends(k)]).filter(([, list]) => list.length);
+  function trendsList() {
+    const cats = shownCats();
+    if (!cats.some(([k]) => k === trendCat)) trendCat = "";      // категории больше нет в каталоге — все
+    if (trendCat) {
+      const list = catTrends(trendCat);
+      return el("div", { class: "trends-list" }, el("p", { class: "tcat-hint", text: `${T("cats")[trendCat][1]} · ${nTrends(list.length)}` }),
+        el("div", { class: "tgrid" }, list.map((t) => trendCard(t, "grid"))));
+    }
+    const pick = (k) => ({ action: "cat", value: k });
+    return el("div", { class: "trends-list" }, cats.map(([k, list]) => el("section", { class: "tcat", "aria-label": T("cats")[k][0] },
+      el("div", { class: "tcat-head" },
+        el("h2", { class: "tcat-title" }, el("button", { type: "button", data: pick(k) },
+          T("cats")[k][0], el("span", { class: "tcat-count", text: nTrends(list.length) }))),
+        el("button", { class: "text-button tcat-more", type: "button", data: pick(k) }, T("catMore"), el("span", { icon: "arrow" }))),
+      el("p", { class: "tcat-hint", text: T("cats")[k][1] }),
+      el("div", { class: "tcarousel cat", data: { cat: k }, "aria-label": T("cats")[k][0] }, list.map((t) => trendCard(t, "narrow"))))));
+  }
   function trendsPage() {
     const head = el("div", { class: "page-head" }, el("div", {}, el("h1", { text: T("trends") }), el("p", { text: T("trendsSub") })));
     const state = trendsState(false);
     if (state) return el("div", {}, head, state, suggestTrend());
-    const cats = CATS.map((k) => [k, catTrends(k)]).filter(([, list]) => list.length);
-    const open = (k) => ({ action: "nav", to: "trends/" + k });
-    return el("div", { class: "trends-tab" }, head,
-      el("nav", { class: "cat-chips", "aria-label": T("trends") },
-        el("button", { class: "choice selected", type: "button", data: { action: "cat-top" } }, T("catAll")),
-        cats.map(([k]) => el("button", { class: "choice", type: "button", data: open(k) }, T("cats")[k][0]))),
-      cats.map(([k, list]) => el("section", { class: "tcat", "aria-label": T("cats")[k][0] },
-        el("div", { class: "tcat-head" },
-          el("h2", { class: "tcat-title" }, el("button", { type: "button", data: open(k) },
-            T("cats")[k][0], el("span", { class: "tcat-count", text: nTrends(list.length) }))),
-          el("button", { class: "text-button tcat-more", type: "button", data: open(k) }, T("catMore"), el("span", { icon: "arrow" }))),
-        el("p", { class: "tcat-hint", text: T("cats")[k][1] }),
-        el("div", { class: "tcarousel cat", data: { cat: k }, "aria-label": T("cats")[k][0] }, list.map((t) => trendCard(t, "narrow"))))),
-      AIVIDEO_ON ? ownStoryButton() : null, suggestTrend());
+    const list = trendsList();
+    const chip = (k, label) => el("button", { class: "choice" + (k === trendCat ? " selected" : ""), type: "button",
+      "aria-pressed": String(k === trendCat), data: { action: "cat", value: k } }, label);
+    return el("div", { class: "trends-tab" }, head, el("span", { class: "cat-anchor" }),
+      el("nav", { class: "cat-chips", "aria-label": T("trends") }, chip("", T("catAll")), shownCats().map(([k]) => chip(k, T("cats")[k][0]))),
+      list, AIVIDEO_ON ? ownStoryButton() : null, suggestTrend());
   }
-  // 104C: страница категории — только её тренды, сетка 2 в ряд; «← Тренды» (и «Назад» Telegram) — на вкладку, на то же место
-  function catPage(k) {
-    const list = catTrends(k), [title, hint] = T("cats")[k];
-    return el("div", { class: "cat-page" },
-      el("button", { class: "text-button cat-back", type: "button", data: { action: "nav", to: "trends" }, icon: "back" }, T("catBack")),
-      el("div", { class: "page-head" }, el("div", {}, el("h1", { text: title }), el("p", { text: `${hint} · ${nTrends(list.length)}` }))),
-      el("div", { class: "tgrid" }, list.map((t) => trendCard(t, "grid"))));
+  // выбор категории: кнопки остаются на месте (и их прокрутка вбок), меняется только список под ними; список — с начала
+  function pickCat(k) {
+    if (k !== "" && !shownCats().some(([x]) => x === k)) return;
+    trendCat = k;
+    const old = $(".trends-list");
+    if (!old) return void render();
+    old.replaceWith(trendsList());
+    document.querySelectorAll(".cat-chips .choice").forEach((b) => {
+      const on = b.dataset.value === trendCat;
+      b.classList.toggle("selected", on);
+      b.setAttribute("aria-pressed", String(on));
+      if (on) {                       // выбранная кнопка — целиком видна в ряду
+        const row = b.parentElement, pad = 20;
+        const l = b.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
+        if (l < row.scrollLeft + pad || l + b.offsetWidth > row.scrollLeft + row.clientWidth - pad)
+          row.scrollTo({ left: Math.max(0, l - pad), behavior: REDUCED ? "instant" : "smooth" });
+      }
+    });
+    // кнопки прилипли под шапкой — к началу списка под ними (кнопки не уезжают); вверху вкладки — остаёмся
+    const top = $(".cat-anchor").getBoundingClientRect().top + window.scrollY - $(".topbar").offsetHeight;
+    if (window.scrollY > top) window.scrollTo({ top, behavior: "instant" });
+    observeVideos();
   }
-  // место прокрутки вкладки и страницы категории (и лент вбок) — вернуться туда из категории или тренда
-  const spots = {};
-  // откуда открыт тренд: "trends" или "trends/<ключ>" — «Назад» туда и на то же место; "" — с главной или по ссылке:
-  // «Назад» на вкладку, с начала
+  // место прокрутки вкладки (и лент вбок, и ряда кнопок) — вернуться туда из тренда, открытого с вкладки
+  let spot = null;
+  // откуда открыт тренд: "trends" — «Назад» туда и на то же место; "" — с главной или по ссылке: «Назад» на вкладку, с начала
   let trendBack = "";
   function saveSpot(r) {
-    if (r !== "trends" && !r.startsWith("trends/")) return;
+    if (r !== "trends") return;
     const rows = {};
     document.querySelectorAll(".tcarousel[data-cat]").forEach((x) => { rows[x.dataset.cat] = x.scrollLeft; });
-    spots[r] = { y: window.scrollY, rows };
+    spot = { y: window.scrollY, rows, chips: $(".cat-chips")?.scrollLeft || 0 };
   }
-  const backTo = (from, to) => !!spots[to] && ((to === "trends" && from.startsWith("trends/")) || (from.startsWith("trend/") && to === trendBack));
-  function restoreSpot(to) {
-    const s = spots[to];
-    document.querySelectorAll(".tcarousel[data-cat]").forEach((x) => { if (s.rows[x.dataset.cat]) x.scrollLeft = s.rows[x.dataset.cat]; });
-    window.scrollTo({ top: s.y, behavior: "instant" });
+  const backTo = (from, to) => !!spot && to === "trends" && from.startsWith("trend/") && trendBack === "trends";
+  function restoreSpot() {
+    document.querySelectorAll(".tcarousel[data-cat]").forEach((x) => { if (spot.rows[x.dataset.cat]) x.scrollLeft = spot.rows[x.dataset.cat]; });
+    const chips = $(".cat-chips");
+    if (chips) chips.scrollLeft = spot.chips;
+    window.scrollTo({ top: spot.y, behavior: "instant" });
   }
   // выбранное качество — по тренду, пока открыт этот тренд
   let pick = { trend: "", q: "480p" };
@@ -2565,8 +2591,15 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
   const TREND_FLOW = /^(trends|trend\/|who\/|preset-new|order\/)/;
   let shown = "";                       // маршрут на экране — откуда пришли (104C: вернуть место прокрутки)
   function render() {
+    let r = route();
+    if (r.startsWith("trends/")) {             // 104C: старые ссылки #/trends/<ключ> — вкладка с выбранной категорией
+      const k = r.slice(7);
+      if (CATS.includes(k)) trendCat = k;
+      r = "trends";
+      if (!tgSettled) memRoute = r;            // параметры запуска Telegram в # не трогаем — до settleTelegram()
+      else history.replaceState(null, "", location.pathname + location.search + "#/trends");
+    }
     navBar();
-    const r = route();
     if (!r.startsWith("order/")) stopPoll();
     if (net && net.route !== r) net = null;       // 102: «нет связи» — только на экране, где случилось
     if (!/^(who\/|preset-new$|preset$|style\/)/.test(r) && photos.key && !sending) clearPhotos();
@@ -2583,10 +2616,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     const from = shown;
     shown = r;
     if (r === "trends") out = trendsPage();
-    else if (r.startsWith("trends/")) {           // 104C: страница категории; нет такой или пустая — вся вкладка
-      const k = r.slice(7);
-      out = CATS.includes(k) && catTrends(k).length ? catPage(k) : trendsState(false) || trendsPage();
-    } else if (/^(trend|who)\//.test(r)) {
+    else if (/^(trend|who)\//.test(r)) {
       const t = trendById(tid);
       out = !t ? waitCatalog() : r.startsWith("trend/") ? trendPage(t) : askPage(t);
     } else if (r === "preset-new" || r === "preset") out = askPage(null);
@@ -2616,7 +2646,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     const top = r === "home";
     $("#header-back").hidden = top || inTelegram;      // в Telegram — его кнопка «Назад» в шапке окна
     if (inTelegram && tg.BackButton) top ? tg.BackButton.hide() : tg.BackButton.show();
-    if (from !== r && catalogState === "ok" && backTo(from, r)) restoreSpot(r);
+    if (from !== r && catalogState === "ok" && backTo(from, r)) restoreSpot();
     if (!/^(trend|who|order)\/|^preset-new$/.test(r)) trendBack = "";
     observeVideos();
   }
@@ -2711,10 +2741,9 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (a === "close") closeModal();
     else if (a === "toggle-trends") { trendsExpanded = !trendsExpanded; persist(); render(); }
     else if (a === "trend") {
-      const at = route();             // 104C: «Назад» из тренда — на вкладку или страницу категории, откуда открыт
-      trendBack = at === "trends" || at.startsWith("trends/") ? at : "";
+      trendBack = route() === "trends" ? "trends" : "";      // 104C: «Назад» из тренда — на вкладку, на то же место
       nav("trend/" + b.dataset.id);
-    } else if (a === "cat-top") window.scrollTo({ top: 0, behavior: REDUCED ? "instant" : "smooth" });
+    } else if (a === "cat" && (v === "" || CATS.includes(v))) pickCat(v);
     else if (a === "quality") {
       const t = trendById(route().slice(6));
       if (t && t.prices[v]) { pick = { trend: t.id, q: v }; render(); }

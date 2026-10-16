@@ -822,6 +822,39 @@
       return 0;
     }
   }
+  // 115C: шаги воронки — POST /api/events {step, ref}, «выстрелил и забыл»: ответ не читаем, ошибки, 404 (сервер ещё
+  // без событий) и 429 (лимит 60/ч) — молча и без повторов, интерфейс не ждёт. Только шаг и ref из нашего списка
+  // (раздел, id тренда, вид услуги или экрана) — ни текстов, ни файлов. Без Telegram (нет initData) сервер не пустит —
+  // не шлём; до скрипта Telegram шаги копятся (≤ 10) и уходят, когда он пришёл
+  // ref по контракту 115A — строго [a-z0-9_-]{0,40}, иначе 400: id тренда (в каталоге — до 64 знаков и заглавные)
+  // приводим к нижнему регистру, не подошёл — шаг уходит без ref (""), не обрезаем: обрезанный id мог бы совпасть с чужим
+  const EV_REF = /^[a-z0-9_-]{0,40}$/;
+  const EV_MAX = 50;              // за одно открытие — не больше
+  let evQueue = [], evSent = 0;
+  function track(step, ref) {
+    ref = String(ref).toLowerCase();
+    if (!EV_REF.test(ref)) ref = "";
+    if (!tgChecked) {
+      if (evQueue.length < 10) evQueue.push([step, ref]);
+      return;
+    }
+    if (!inTelegram || !initData() || evSent >= EV_MAX) return;
+    evSent++;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 10000);
+    try {
+      fetch(API + "/api/events", {
+        method: "POST", headers: { "X-Telegram-Init-Data": initData(), "Content-Type": "application/json" },
+        body: JSON.stringify({ step, ref }), signal: ctl.signal,
+        credentials: "omit", cache: "no-store", referrerPolicy: "no-referrer",
+      }).catch(() => {}).finally(() => clearTimeout(timer));
+    } catch {}
+  }
+  function flushEvents() {
+    const q = evQueue;
+    evQueue = [];
+    q.forEach(([s, r]) => track(s, r));
+  }
   let upload = null;              // идущая заливка (XMLHttpRequest) — для «Отменить» и «Оформить в боте»
   // заливка заказа с фото: XMLHttpRequest — ради полосы загрузки (fetch не умеет показывать отправку)
   function postOrder(form, onProgress) {
@@ -1001,16 +1034,20 @@
     `<div class="page-top"><div><h1>${title}</h1>${sub ? `<p class="page-subtitle">${sub}</p>` : ""}</div></div>`;
   const pageTopEl = (title, sub = "") =>
     el("div", { class: "page-top" }, el("div", {}, el("h1", { text: title }), sub ? el("p", { class: "page-subtitle", text: sub }) : null));
+  // вкладка, к которой относится экран r (подсветка в меню; 115C — шаг tab)
+  function tabOn(to, r) {
+    const fromTrend = r === "preset-new" && !!presetReturn;      // «Сделать пресет» из тренда — это ещё тренды
+    return r === to || r.startsWith(to + "/") || (to === "trends" && (/^(trend|who|order)\//.test(r) || fromTrend))
+      || (to === "profile" && r === "drafts") || (to === "edit" && /^styles$|^style\//.test(r))
+      || (to === "create" && (r === "preset" || (r === "preset-new" && !fromTrend)));
+  }
   function navBar() {
     const r = route();
     const labels = T("nav");
     $("#nav").innerHTML = [
       ["home", "home"], ["trends", "spark"], ["edit", "sliders"], ["create", "plus"], ["profile", "user"],
     ].map(([to, ic], i) => {
-      const fromTrend = r === "preset-new" && !!presetReturn;      // «Сделать пресет» из тренда — это ещё тренды
-      const on = r === to || r.startsWith(to + "/") || (to === "trends" && (/^(trend|who|order)\//.test(r) || fromTrend))
-        || (to === "profile" && r === "drafts") || (to === "edit" && /^styles$|^style\//.test(r))
-        || (to === "create" && (r === "preset" || (r === "preset-new" && !fromTrend)));
+      const on = tabOn(to, r);
       return `<a href="#/${to}" class="nav-item ${on ? "current" : ""}" ${r === to ? 'aria-current="page"' : ""}>${icon(ic)}<span>${esc(labels[i])}</span></a>`;
     }).join("");
   }
@@ -2639,6 +2676,54 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     return trendsState(false) || trendsPage();       // такого тренда в каталоге уже нет — весь каталог
   }
 
+  // 115C: шаги воронки по экрану. tab — экран другой вкладки (и первый экран, если он на вкладке); item — тренд (id из
+  // каталога: пока каталога нет — ждём, шаг уйдёт со следующим render) или услуга, каждый — раз за открытие. media — вид экрана с выбором фото или видео (один раз на экран, см. слушатель change)
+  const TABS = ["trends", "edit", "create", "profile"];
+  const tabOf = (r) => TABS.find((t) => tabOn(t, r)) || "";
+  function itemOf(r) {
+    const m = /^(trend|who)\/(.+)$/.exec(r);
+    if (m) return trendById(m[2]) ? m[2] : null;
+    if (r === "edit/neuro") return "neuro";
+    if (r === "edit/montage") return "montage";
+    if (r === "styles" || r.startsWith("style/")) return "style";
+    if (r === "create/video") return "aivideo";
+    if (r === "preset" || r === "preset-new") return "character";
+    return "";
+  }
+  function mediaOf(r) {
+    if (r.startsWith("who/")) return "trend";
+    if (r.startsWith("style/")) return "style";
+    if (r === "preset" || r === "preset-new") return "character";
+    if (r === "create/video") return "aivideo";
+    if (r === "edit/neuro") return "neuro";
+    return "";
+  }
+  let evOpened = false, evTab = "", evMedia = "";
+  const evItems = new Set();
+  function funnel(r, from) {
+    if (!evOpened) {
+      evOpened = true;
+      track("app_open", tabOf(r) || "home");
+    }
+    const t = tabOf(r);
+    if (t && t !== evTab) track("tab", t);
+    evTab = t;
+    const k = itemOf(r);
+    if (k && !evItems.has(k)) {          // null — тренд, а каталога ещё нет
+      evItems.add(k);
+      track("item", k);
+    }
+    if (from !== r) evMedia = "";
+  }
+  document.addEventListener("change", (e) => {     // capture: до onchange, который очищает выбор
+    const inp = e.target;
+    if (!(inp instanceof HTMLInputElement) || inp.type !== "file" || !inp.files || !inp.files.length) return;
+    const r = route(), k = mediaOf(r);
+    if (!k || evMedia === r) return;
+    evMedia = r;
+    track("media", k);
+  }, true);
+
   const TREND_FLOW = /^(trends|trend\/|who\/|preset-new|order\/)/;
   let shown = "";                       // маршрут на экране — откуда пришли (104C: вернуть место прокрутки)
   function render() {
@@ -2666,6 +2751,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     const tid = r.replace(/^(trend|who)\//, "");
     const from = shown;
     shown = r;
+    funnel(r, from);
     if (r === "trends") out = trendsPage();
     else if (/^(trend|who)\//.test(r)) {
       const t = trendById(tid);
@@ -2946,11 +3032,13 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     tgChecked = true;
     const platform = w.platform && w.platform !== "unknown" ? w.platform : LAUNCH_PLATFORM;
     if (!platform && !w.initData) {                 // скрипт есть, но это не Telegram — ждать больше нечего
+      flushEvents();                                // 115C: без Telegram шаги не шлём — очередь просто уходит
       render();
       return true;
     }
     tg = w;
     inTelegram = true;
+    flushEvents();                                  // 115C: шаги, накопленные до скрипта
     detectLang();
     document.documentElement.classList.add("in-telegram");
     try {
@@ -2975,6 +3063,7 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
         clearInterval(timer);
         settleTelegram();
         tgChecked = true;
+        flushEvents();
         render();
       }
     }, 100);

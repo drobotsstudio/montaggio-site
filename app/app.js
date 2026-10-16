@@ -111,6 +111,8 @@
       wishHint: "Учтём, если это не меняет сам тренд и не нарушает правила.",
       askTitle: "Фото для ролика", optPhotos: "Фото", next: "Дальше", yourFace: "Ваше лицо", presetPhotos: "Ваши фото",
       presetUse: "Возьмём ваш последний пресет персонажа — фото для этого героя не нужны.", noPreset: "Нет пресета? Сделать",
+      errNum: "Заполните поле «{label}»: число от {min} до {max}.", numRange: "Число от {min} до {max}.",
+      numBad: "Нужно число от {min} до {max}.",
       errMin: "Добавьте фото: {label}.", errTotalAll: "Видео и фото вместе — не больше 105 МБ.",
       tileStyle: ["Сменить стиль", "Ваше видео в другом виде: аниме, игрушка, вязаный мир…"],
       styles: "Стили", stylesHint: "Ваше видео — в новом виде", stylesSub: "Выберите стиль — перерисуем в нём ваше видео.",
@@ -272,6 +274,8 @@
       wishHint: "We'll apply them if they don't change the trend itself or break the rules.",
       askTitle: "Photos for the video", optPhotos: "Photos", next: "Next", yourFace: "Your face", presetPhotos: "Your photos",
       presetUse: "We'll use your latest character preset — no photos needed for this person.", noPreset: "No preset? Make one",
+      errNum: "Fill in “{label}”: a number from {min} to {max}.", numRange: "A number from {min} to {max}.",
+      numBad: "Enter a number from {min} to {max}.",
       errMin: "Add photos: {label}.", errTotalAll: "Video and photos together — no more than 105 MB.",
       tileStyle: ["Change the style", "Your video in a new look: anime, toy, knitted world…"],
       styles: "Styles", stylesHint: "Your video in a new look", stylesSub: "Pick a style — we'll redraw your video in it.",
@@ -426,6 +430,8 @@
       wishHint: "Li applichiamo se non cambiano il trend e non violano le regole.",
       askTitle: "Foto per il video", optPhotos: "Foto", next: "Avanti", yourFace: "Il tuo volto", presetPhotos: "Le tue foto",
       presetUse: "Useremo il tuo ultimo preset del personaggio — per questa persona non servono foto.", noPreset: "Nessun preset? Crealo",
+      errNum: "Compila «{label}»: un numero da {min} a {max}.", numRange: "Un numero da {min} a {max}.",
+      numBad: "Serve un numero da {min} a {max}.",
       errMin: "Aggiungi foto: {label}.", errTotalAll: "Video e foto insieme — non più di 105 MB.",
       tileStyle: ["Cambia stile", "Il tuo video in un nuovo look: anime, giocattolo, mondo a maglia…"],
       styles: "Stili", stylesHint: "Il tuo video in un nuovo look", stylesSub: "Scegli uno stile — ridisegniamo il tuo video.",
@@ -1252,7 +1258,9 @@
   const charPath = () => route() === "preset";      // «Свой персонаж» из вкладки «Создать», не «Сделать пресет» из тренда
 
   // --- что просим у клиента (91, TRENDS.md): блоки ask из каталога, по порядку героев в промпте тренда ---
-  const KINDS = new Set(["face", "body", "product", "car", "item"]);
+  // 110C: kind number — не фото, а число от клиента (AGE у bdayfountain: «Сколько исполняется?»), min…max — пределы числа
+  const KINDS = new Set(["face", "body", "product", "car", "item", "number"]);
+  const NUM_MAX = 9999;              // API.md 110A: 0 ≤ min ≤ max ≤ 9999
   const loc = (o) => (o && (o[LANG] || o.ru || o.en || o.it)) || "";
   function cleanAsk(list) {
     if (!Array.isArray(list) || !list.length || list.length > 12) return null;
@@ -1266,11 +1274,13 @@
     for (const b of list) {            // один неверный блок — весь список не наш: берём простой «ваше лицо»
       if (!b || typeof b !== "object" || typeof b.key !== "string" || !/^[A-Za-z0-9_]{1,16}$/.test(b.key)
         || keys.has(b.key) || !KINDS.has(b.kind)) return null;
+      const num = b.kind === "number";
+      if (num && !(Number.isInteger(b.min) && Number.isInteger(b.max))) return null;
       const min = Number.isInteger(b.min) ? b.min : 0, max = Number.isInteger(b.max) ? b.max : 1;
       const labels = langs(b.labels, 80);
-      if (min < 0 || max < 1 || max > 8 || min > max || !labels) return null;
+      if (min < 0 || min > max || !labels || (num ? max > NUM_MAX : max < 1 || max > 8)) return null;
       keys.add(b.key);
-      out.push({ key: b.key, kind: b.kind, preset: b.preset === true && !out.some((x) => x.preset), min, max, labels,
+      out.push({ key: b.key, kind: b.kind, preset: !num && b.preset === true && !out.some((x) => x.preset), min, max, labels,
         hint: langs(b.hint, 300), group: langs(b.group, 80) });
     }
     return out;
@@ -1290,12 +1300,20 @@
   const MB = 1024 * 1024;
   const MAX_PHOTOS = 8;                // всего в заказе (контракт API)
   // video, prompt — только у экрана стиля (92C): видео клиента и его подсказка, тоже лишь в памяти до отправки
-  const freshPhotos = () => ({ key: "", blocks: {}, preset: false, groupOpen: false, video: null, prompt: "" });
+  // nums (110C) — что клиент набрал в полях-числах, по ключу блока (строка как есть; проверка — numOf)
+  const freshPhotos = () => ({ key: "", blocks: {}, preset: false, groupOpen: false, video: null, prompt: "", nums: {} });
   let photos = freshPhotos();
   const listOf = (k) => photos.blocks[k] || (photos.blocks[k] = []);
   const allPhotos = () => Object.values(photos.blocks).flat();
   const usesPreset = (b) => b.preset && photos.preset;
-  const countOf = (b) => usesPreset(b) ? 0 : listOf(b.key).length;
+  const countOf = (b) => usesPreset(b) || b.kind === "number" ? 0 : listOf(b.key).length;
+  // 110C: число блока number — целое в пределах блока, иначе null (тогда «Дальше» неактивна)
+  function numOf(b) {
+    const s = photos.nums[b.key] || "";
+    if (!/^\d{1,4}$/.test(s)) return null;
+    const n = Number(s);
+    return n >= b.min && n <= b.max ? n : null;
+  }
   function clearPhotos() {
     allPhotos().forEach((p) => p.url && URL.revokeObjectURL(p.url));
     if (photos.video) URL.revokeObjectURL(photos.video.url);
@@ -1308,8 +1326,10 @@
   // чего не хватает до «Дальше» — текст ошибки; всё есть — ""
   function missing(ask) {
     for (const b of ask)
-      if (b.min > 0 && !usesPreset(b) && countOf(b) < b.min) return T("errMin", { label: loc(b.labels) });
-    if (!ask.some((b) => usesPreset(b) || countOf(b) > 0)) return T("errNeed");
+      if (b.kind === "number") {
+        if (numOf(b) === null) return T("errNum", { label: loc(b.labels), min: b.min, max: b.max });
+      } else if (b.min > 0 && !usesPreset(b) && countOf(b) < b.min) return T("errMin", { label: loc(b.labels) });
+    if (!ask.some((b) => b.kind !== "number" && (usesPreset(b) || countOf(b) > 0))) return T("errNeed");
     return "";
   }
   function addPhotos(b, files) {
@@ -1343,7 +1363,35 @@
         "aria-label": `${T("removePhoto")} ${i + 1}`, icon: "x" }));
   }
   const addTile = (id) => el("label", { class: "photo-add", for: id }, el("span", { icon: "plus" }), el("small", { text: T("addPhoto") }));
+  // 110C: поле-число (цифровая клавиатура); ввод без перерисовки экрана — фокус не теряется, клавиатура не прыгает
+  // без maxlength: вставка «1a5» сначала теряет не-цифры, потом обрезается до длины max (иначе браузер режет раньше)
+  function numberEl(b) {
+    const id = "num-input-" + b.key, len = String(b.max).length;
+    const noteText = () => {
+      const s = photos.nums[b.key] || "";
+      return s && numOf(b) === null ? T("numBad", { min: b.min, max: b.max }) : T("numRange", { min: b.min, max: b.max });
+    };
+    const note = el("p", { class: "ask-note", id: id + "-note", "aria-live": "polite", text: noteText() });
+    const input = el("input", { id, class: "num-input", type: "text", inputmode: "numeric", pattern: "[0-9]*",
+      autocomplete: "off", enterkeyhint: "done", placeholder: `${b.min}–${b.max}`,
+      "aria-describedby": id + "-note",
+      oninput: (e) => {
+        const v = e.target.value.replace(/\D/g, "").slice(0, len);
+        if (v !== e.target.value) e.target.value = v;
+        photos.nums[b.key] = v;
+        note.textContent = noteText();
+        note.classList.toggle("bad", !!v && numOf(b) === null);
+        updateSend();
+      },
+      onkeydown: (e) => { if (e.key === "Enter") e.target.blur(); } });
+    input.value = photos.nums[b.key] || "";
+    note.classList.toggle("bad", !!input.value && numOf(b) === null);
+    return el("section", { class: "ask-block num-block" },
+      el("div", { class: "ask-head" }, el("h3", {}, el("label", { for: id, text: loc(b.labels) }))),
+      b.hint ? el("p", { class: "photo-hint", text: loc(b.hint) }) : null, input, note);
+  }
   function blockEl(b, t) {
+    if (b.kind === "number") return numberEl(b);
     const preset = !!t && b.preset, list = listOf(b.key), byPreset = usesPreset(b);
     const id = "photo-input-" + b.key;
     const parts = [el("div", { class: "ask-head" }, el("h3", { text: loc(b.labels) }),
@@ -1395,7 +1443,7 @@
     const plain = ask.filter((b) => !b.group), grouped = ask.filter((b) => b.group);
     let group = null;
     if (grouped.length) {
-      const open = photos.groupOpen || grouped.some((b) => listOf(b.key).length);
+      const open = photos.groupOpen || grouped.some((b) => listOf(b.key).length || photos.nums[b.key]);
       group = el("details", { class: "ask-group", open, ontoggle: (e) => { photos.groupOpen = e.target.open; } },
         el("summary", { text: loc(grouped[0].group) }), grouped.map((b) => blockEl(b, t)));
     }
@@ -1475,6 +1523,9 @@
     // 96C: стиль листа — только с экрана «Свой персонаж» и не «Реализм» (нет поля — реализм, как раньше)
     if (!t && charPath() && has(STYLE_CODES, presetStyle) && presetStyle !== "real") form.append("preset_style", presetStyle);
     if (t && t.ask) form.append("counts", ask.map(countOf).join(","));
+    // 110C: поля-числа (API.md 110A) — numbers: JSON {ключ блока: целое}, ровно все блоки number, только у тренда с ними
+    const nums = t && t.ask ? ask.filter((b) => b.kind === "number") : [];
+    if (nums.length) form.append("numbers", JSON.stringify(Object.fromEntries(nums.map((b) => [b.key, numOf(b)]))));
     const wish = t ? photos.prompt.trim().slice(0, WISH_MAX) : "";
     if (wish) form.append("prompt", wish);            // 94C: пожелание клиента — недоверенный текст, проверяет бот
     let n = 0;

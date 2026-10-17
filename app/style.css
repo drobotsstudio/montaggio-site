@@ -3860,3 +3860,26 @@ a.button {
 .num-block label {
   cursor: pointer;
 }
+
+/* 116C: экран «Перед первым фото» (окно consentSheet в app.js) — Монти, текст юриста, кнопка в бота, ссылка на текст */
+.consent-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.consent-sheet .mini-monti {
+  width: 96px;
+  height: 96px;
+}
+.consent-sheet .sheet-text {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.consent-sheet .text-button {
+  margin-top: 6px;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -248,6 +248,10 @@
       checkingNeuro: "Проверяем видео и описание…", orderNeuro: "Изменить видео", nvFix: "Изменить заказ", nvMore: "Изменить ещё видео",
       aboutNv: ["«Изменить видео»", "Черновик описания и настроек — только на этом устройстве, до 7 дней; видео и фото в браузере не остаются."],
       aboutBot: ["«Монтаж»", "В бота уходит только ваш выбор — коротким кодом в ссылке."],
+      // 116C: экран «Перед первым фото» — текст маркетолога (marketing/proposals/01-welcome-B.md; владелец 17.10)
+      cfTitle: "Перед первым фото",
+      cfText: "Чтобы нейросеть сделала ролик с вашим фото, нужно одно согласие — один раз, и больше не спрашиваем.",
+      cfBtn: "✅ Дать согласие в боте", cfWhat: "Что я подтверждаю",
     },
     en: {
       nav: ["Home", "Trends", "Edit", "Create", "Profile"],
@@ -404,6 +408,9 @@
       checkingNeuro: "Checking the video and the description…", orderNeuro: "Change the video", nvFix: "Edit the order", nvMore: "Change another video",
       aboutNv: ["“Change the video”", "The draft of the description and settings — only on this device, up to 7 days; videos and photos don't stay in the browser."],
       aboutBot: ["“Editing”", "Only your choice goes to the bot — as a short code in the link."],
+      cfTitle: "Before your first photo",
+      cfText: "To make a video from your photo, we need one consent — just once, and we never ask again.",
+      cfBtn: "✅ Give consent in the bot", cfWhat: "What I'm agreeing to",
     },
     it: {
       nav: ["Home", "Trend", "Modifica", "Crea", "Profilo"],
@@ -560,6 +567,9 @@
       checkingNeuro: "Controlliamo il video e la descrizione…", orderNeuro: "Cambia il video", nvFix: "Modifica l'ordine", nvMore: "Cambia un altro video",
       aboutNv: ["«Cambia il video»", "La bozza della descrizione e delle impostazioni — solo su questo dispositivo, fino a 7 giorni; video e foto non restano nel browser."],
       aboutBot: ["«Montaggio»", "Al bot va solo la tua scelta — come codice breve nel link."],
+      cfTitle: "Prima della prima foto",
+      cfText: "Per fare un video con la tua foto ci serve un solo consenso — una volta sola, poi non lo chiediamo più.",
+      cfBtn: "✅ Dai il consenso nel bot", cfWhat: "Cosa confermo",
     },
   };
   const T = (key, vars) => {
@@ -1578,6 +1588,9 @@
   // платная проверка. Черновик при этом не трогаем: всё стирается только после принятого заказа
   const SLOW_MS = 20000, WAIT_MS = 45000;
   async function submit(form, files, meta) {
+    // 116C: без согласия заказ не отправляем — экран «Перед первым фото» (признак ещё не пришёл — ждём его)
+    if (!consent && !(await checkMe())) return void consentSheet();
+    if (sending) return;
     const sendBtn = $("#send-photos");
     const label = sendBtn ? sendBtn.lastChild.textContent : "";
     sending = true;
@@ -1620,6 +1633,12 @@
       if (b) b.hidden = true;
       if (s) s.lastChild.textContent = label;
       updateSend();
+      if (e.status === 403 && e.code === "need_consent") {     // 116A: сервер не знает о согласии — тот же экран
+        setNet("", at);
+        consent = false;
+        consentSheet();
+        return;
+      }
       if (e.code === "network") {
         const kind = done >= 1 ? "sent" : "down";
         setNet(kind, at);
@@ -2425,7 +2444,7 @@
     } else if (d.status === "needs_consent") {
       head(T("consent"));
       msg();
-      actions.append(btn(T("openBot"), "open-bot", "primary full", {}, "send"));
+      actions.append(btn(T("openBot"), "consent-bot", "primary full", {}, "send"));     // 116C: бот — сразу на согласие
     } else if (d.status === "rejected") {
       head(T("rejected"));
       msg();
@@ -2559,6 +2578,57 @@
     if (inTelegram && tg.openTelegramLink) tg.openTelegramLink(BOT_URL + path);
     else location.href = BOT_URL + path;
   }
+
+  // --- 116C: согласие — только для экрана «Перед первым фото». GET /api/me (initData) → {consent}: признак сервера —
+  // недоверенный, для интерфейса, а не доступ (фото без согласия не примут сервер — 403 need_consent — и бот по своей
+  // базе). Нет Telegram, ошибка или нет ответа — «согласия нет»: тренды смотреть можно всегда, а выбор фото или видео
+  // и отправка заказа ведут на экран. Согласие даётся в боте (?start=consent); вернулись в приложение — перепроверяем
+  let consent = false, meCheck = null, consentAsked = false;
+  const consentOpen = () => !!$("#consent-sheet");
+  function checkMe() {
+    if (consent) return Promise.resolve(true);
+    if (meCheck) return meCheck;
+    if (!inTelegram || !initData()) return Promise.resolve(false);
+    meCheck = api("/api/me", { timeout: 5000 }).then((b) => !!b && b.consent === true, () => false).then((ok) => {
+      meCheck = null;
+      consent = ok;
+      if (ok && consentOpen()) closeModal();          // согласие дано в боте — экран больше не нужен
+      return ok;
+    });
+    return meCheck;
+  }
+  // вернулись из бота: бот сообщает серверу о согласии не мгновенно — пока экран открыт, ещё 5 раз через 3 с
+  function recheckConsent(tries = 6) {
+    if (consent || document.hidden) return;
+    checkMe().then((ok) => {
+      if (!ok && consentAsked && consentOpen() && tries > 1) setTimeout(() => recheckConsent(tries - 1), 3000);
+    });
+  }
+  function consentSheet() {
+    showModal(esc(T("cfTitle")), `<div id="consent-sheet" class="consent-sheet">${monti("m")}<p class="sheet-text">${esc(T("cfText"))}</p>${button(esc(T("cfBtn")), "consent-bot", "primary full")}<button class="text-button" data-action="consent-what">${esc(T("cfWhat"))}</button></div>`);
+  }
+  // согласия нет — экран; признак ещё не пришёл — ждём его (≤ 5 с) и тогда решаем
+  async function needConsent(then) {
+    if (consent || await checkMe()) return void (then && then());
+    consentSheet();
+  }
+  // текст согласия — страница сайта рядом с приложением (/consent.html); в Telegram — во внешнем браузере
+  function consentWhat() {
+    const url = new URL("../consent.html", location.href).href;
+    if (inTelegram && tg.openLink) tg.openLink(url);
+    else window.open(url, "_blank", "noopener");
+  }
+  // выбор фото или видео (поле файла и его подпись-кнопка) без согласия — экран вместо окна выбора файлов
+  document.addEventListener("click", (e) => {
+    if (consent) return;
+    const lab = e.target.closest && e.target.closest("label[for]");
+    const inp = lab ? document.getElementById(lab.htmlFor) : e.target.closest && e.target.closest('input[type="file"]');
+    if (!(inp instanceof HTMLInputElement) || inp.type !== "file" || inp.disabled) return;
+    e.preventDefault();
+    e.stopPropagation();
+    needConsent(() => inp.isConnected && inp.click());
+  }, true);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) recheckConsent(); });
 
   // --- экраны ---
   function home() {
@@ -2957,6 +3027,8 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
     else if (a === "pay-rub") pay("rub");
     else if (a === "pay-stars") pay("stars");
     else if (a === "open-bot") openBot();
+    else if (a === "consent-bot") { consentAsked = true; openBot("?start=consent"); }    // 116C: приложение не закрываем
+    else if (a === "consent-what") consentWhat();
     else if (a === "suggest-trend") openBot("?start=trend");
     else if (a === "support") { openBot(); toast(T("supportHint")); }
     else if (a === "cancel-order")
@@ -3049,7 +3121,9 @@ ${trendsExpanded ? '<div id="home-trends" data-mount="home-trends"></div>' : ""}
         tg.setBackgroundColor("#090909");
       }
       tg.BackButton?.onClick(back);
+      tg.onEvent?.("activated", () => recheckConsent());          // 116C: Bot API 8.0 — окно приложения снова открыто
     } catch {}
+    checkMe();                                      // 116C: признак согласия — сразу, до первого выбора фото
     render();
     return true;
   }
